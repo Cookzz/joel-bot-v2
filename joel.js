@@ -22,16 +22,17 @@ client.on('message', async message => {
     if(message.author.id!="434785369477742592"){
       userVoiceChannel.join().then(connection => {
           console.log("joined channel");
-          play(connection, "https://www.youtube.com/watch?v=_AZDaW3GLQw")
+          play(userVoiceChannel,connection, "https://www.youtube.com/watch?v=_AZDaW3GLQw")
       });
       message.reply("working")
     }
 });
 
-async function play(connection, url) {
+async function play(userVoiceChannel,connection, url) {
   let d=connection.playOpusStream(await ytdl(url));
   d.on("end",end=>{
-    play(connection, "https://www.youtube.com/watch?v=_AZDaW3GLQw")
+    userVoiceChannel.leave()
+    //play(connection, "https://www.youtube.com/watch?v=_AZDaW3GLQw")
   })
 }
 // Log our bot in
