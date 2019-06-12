@@ -19,21 +19,34 @@ client.on("error", function () {
 
 client.on('message', async message => {
     let userVoiceChannel = message.member.voiceChannel
+    let botVoiceConnection = message.guild.voiceConnection
+    let content = message.content
+
     if(message.author.id!="434785369477742592"){
-      userVoiceChannel.join().then(connection => {
-          console.log("joined channel");
-          play(userVoiceChannel,connection, "https://www.youtube.com/watch?v=_AZDaW3GLQw")
-      });
-      message.reply("working")
+        if (!botVoiceConnection){
+            userVoiceChannel.join().then(connection => {
+                console.log("joined channel");
+                play(connection, content)
+            });
+        } else {
+            songList.push(content)
+        }
+
+        message.reply("working")
     }
 });
 
-async function play(userVoiceChannel,connection, url) {
-  let d=connection.playOpusStream(await ytdl(url));
-  d.on("end",end=>{
-    userVoiceChannel.leave()
-    //play(connection, "https://www.youtube.com/watch?v=_AZDaW3GLQw")
-  })
+async function play(connection, url) {
+    let d=connection.playOpusStream(await ytdl(url))
+    d.on("end",end=>{
+        let hasSong = (songList.length > 0)
+
+        if (hasSong){
+            play(connection, songList[0])
+        } else {
+            userVoiceChannel.leave()
+        }
+    })
 }
 // Log our bot in
 client.login(token);
