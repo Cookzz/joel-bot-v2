@@ -5,8 +5,9 @@ const client = new Discord.Client()
 const token = 'NDM0Nzg1MzY5NDc3NzQyNTky.DbSlZA.A0OQGlz3Jp7WUJgr1D-NNf1P1eE';
 
 let songList = []
-
+let d;
 const ytdl = require('ytdl-core-discord')
+
 client.login(token)
 
 client.on('ready', () => {
@@ -19,30 +20,30 @@ client.on("error", function () {
 
 client.on('message', async message => {
     let userVoiceChannel = message.member.voiceChannel
-    let botVoiceConnection = message.guild.voiceConnection
     let content = message.content
 
     if(message.author.id!="434785369477742592"){
-        if (!botVoiceConnection){
+        if (songList.length==0){
+            songList.push(content)
             userVoiceChannel.join().then(connection => {
                 console.log("joined channel");
-                play(connection, content)
-            });
+                play(userVoiceChannel, connection, content)
+            })
         } else {
             songList.push(content)
         }
 
-        message.reply("working")
+        //message.reply("working")
     }
 });
 
-async function play(connection, url) {
-    let d=connection.playOpusStream(await ytdl(url))
+async function play(userVoiceChannel, connection, url) {
+    d=connection.playOpusStream(await ytdl(url))
+    songList.shift()
     d.on("end",end=>{
-        let hasSong = (songList.length > 0)
-
-        if (hasSong){
-            play(connection, songList[0])
+        if (songList.length > 0){
+            console.log(songList[0])
+            play(userVoiceChannel, connection, songList[0])
         } else {
             userVoiceChannel.leave()
         }
