@@ -102,12 +102,11 @@ function leave(u,m) {
 	let botConnection = u.guild.voiceConnection
 
 	if (botConnection){
-		voice.leave().then(()=>{
-			u.channel.send('Left voice channel.')
-	
-			songList = []
-			allSongList = []
-		})
+		voice.leave()
+		u.channel.send('Left voice channel.')
+
+		songList = []
+		allSongList = []
 	} else {
 		u.channel.send('I am not in a voice channel.')
 	}
