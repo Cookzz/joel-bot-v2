@@ -11,13 +11,13 @@ class Host{
     this.connected;
     this.d;
     this.command={
-  		p:(u,m)=>this.addMusic(u,m),
-  		s:(u,m)=>this.skip(u,m),
-  		se:(u,m)=>this.seek(u,m),
-  		pa: (u,m)=>this.pause(u,m),
-  		re: (u,m)=>this.resume(u,m),
-  		l: (u,m)=>this.leave(u,m),
-  		loop: (u,m)=>this.loop(u,m),
+  		p:(u,m,e)=>this.addMusic(u,m,e),
+  		s:(u,m,e)=>this.skip(u,m,e),
+  		se:(u,m,e)=>this.seek(u,m,e),
+  		pa: (u,m,e)=>this.pause(u,m,e),
+  		re: (u,m,e)=>this.resume(u,m,e),
+  		l: (u,m,e)=>this.leave(u,m,e),
+  		loop: (u,m,e)=>this.loop(u,m,e),
   	}
   }
 
@@ -33,35 +33,45 @@ class Host{
     }
   }
 
+
   sendCommand(u,m){
-  	if(this.command.hasOwnProperty(m[0])){
-  		this.command[m[0]](u,m);
+    let newParam=[]
+    let newExtra=[]
+    for(let i = 0;i<m.length;i++){
+      if(m[i][0]=="-"){
+        newExtra.push(m[i].substr(1))
+      }else{
+        newParam.push(m[i])
+      }
+    }
+
+    console.log(newParam[0])
+  	if(this.command.hasOwnProperty(newParam[0])){
+  		this.command[newParam[0]](u,newParam,newExtra)
   	}else{
   		u.reply("unknown command")
   	}
   }
 
-  addMusic(u,m){
+  addMusic(u,m,e){
+    let isLocal=this.detectExtra("local",e)
   	let voice=u.member.voiceChannel
+    let songDetail={
+      url:m[1],
+      option:{},
+      type:(isLocal)?"local":"youtube"
+    }
   	if(m.length>1){
   		if (this.songList.length==0){
   			voice.join().then(connection => {
   				console.log("joined channel");
-  				this.play(voice, connection, {
-            url:m[1],
-            option:{}
-          })
+  				this.play(voice, connection,songDetail)
   			})
   		}
-  		this.songList.push({
-        url:m[1],
-        option:{}
-      })
-  		this.allSongList.push({
-        url:m[1],
-        option:{}
-      })
+  		this.songList.push(songDetail)
+  		this.allSongList.push(songDetail})
 
+      //get song details
   		ytdlCore.getInfo(m[1]).then((info) => {
   			u.channel.send("TITLE: " + info.title)
   			u.channel.send("Requested by: " + u.member.displayName)
@@ -71,12 +81,12 @@ class Host{
   	}
   }
 
-  loop(u,m){
+  loop(u,m,e){
     this.willLoop = !this.willLoop
   	u.channel.send('Loop '+(willLoop?'enabled':'disabled'));
   }
 
-  skip(u,m) {
+  skip(u,m,e) {
       if (this.songList.length > 0){
        	this.d.end();
       } else {
@@ -84,7 +94,7 @@ class Host{
       }
   }
 
-  leave(u,m) {
+  leave(u,m,e) {
   	let voice=u.member.voiceChannel
   	let botConnection = u.guild.voiceConnection
 
@@ -97,7 +107,7 @@ class Host{
   	}
   }
 
-  pause(u,m){
+  pause(u,m,e){
   	if (this.songList.length > 0){
   		this.d.pause();
   		u.channel.send('Paused.')
@@ -106,7 +116,7 @@ class Host{
      }
   }
 
-  resume(u,m){
+  resume(u,m,e){
   	 if (this.songList.length > 0){
       	this.d.resume();
       	u.channel.send('Resumed.')
@@ -115,12 +125,14 @@ class Host{
      }
   }
 
-  seek(u,m){
+  seek(u,m,e){
   	let voice=u.member.voiceChannel
   	let time = 0;
   	if (m[1]){
   		  time = m[1]
   	}
+
+    console.log("seek entered")
 
     this.songList.splice(1, 0, {
         url:this.currentSong,
@@ -159,6 +171,16 @@ class Host{
 
   j2j(j){
     return JSON.parse(JSON.stringify(j));
+  }
+
+  detectExtra(s,a){
+    for(let i=0;i<a.length;i++){
+      if(s==a[i]){
+        return true;
+      }
+    }
+
+    return false;
   }
 
 }
