@@ -37,6 +37,8 @@ class Host{
       if(data.status=="fail"){
         this.client.channels.get(data.channel).send("Add local fail! code: "+data.code);
       }else{
+        // data.connection=this.client.voiceConnections.get("371828027388329984")
+        // console.log(data.connection);
         this.addSongToList(data.detail)
       }
     })
@@ -89,6 +91,7 @@ class Host{
         this.socket.emit("client_add_music",{
           client:u.member.id,
           channel:u.channel.id,
+          voice:voice.id,
           path:m[1]
         })
       }else{
@@ -189,6 +192,7 @@ class Host{
   }
 
   play(userVoiceChannel, connection, song) {
+
     if(song.type=="youtube"){
       const stream = ytdlCore(song.url, { filter : 'audioonly' });
     	this.d=connection.playStream(stream, song.option)

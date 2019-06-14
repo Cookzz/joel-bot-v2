@@ -29,6 +29,7 @@ io.on('connection', function (socket) {
       clientList[data.client].socket.emit("find_local",{
         path:data.path,
         channel:data.channel,
+        voice:data.voice,
       })
     }else{
       socket.emit("add_local",{

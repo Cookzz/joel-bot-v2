@@ -1,4 +1,5 @@
 const Discord = require('discord.js');
+const ytdlCore = require('ytdl-core');
 
 const client = new Discord.Client();
 const token = 'NDM0Nzg1MzY5NDc3NzQyNTky.DbSlZA.A0OQGlz3Jp7WUJgr1D-NNf1P1eE';
@@ -30,20 +31,21 @@ socket.on("find_local",(data)=>{
       title:data.path,
       member:client_detail.member,
       channel:data.channel,
+      voice:data.voice,
     }
   });
 })
-
+let d;
 socket.on("play_local_song",(data)=>{
-  console.log(client.voiceConnections)
-  let connection=client.voiceConnections.get(client_detail.guild)
-  // this.d=connection.playFile("song/"+data.path, data.option)
-  // this.d.on("end",end=>{})
-  // console.log("hi");
-  // socket.emit("play_local_client_finish",{
-  //   status:success,
-  //   detail:data
-  // })
+  console.log("hen")
+  console.log(data.voice)
+
+  client.channels.get(data.voice).join().then(connection=>{
+    d=connection.playFile("./song/"+data.url, data.option)
+  }).catch(e => {
+    console.error(e);
+  });
+
 })
 
 socket.on("disconnect",()=>{
