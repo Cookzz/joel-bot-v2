@@ -3,7 +3,7 @@ let io = require('socket.io')(app);
 
 let clientList={};
 let host={};
-app.listen(3000);
+app.listen(8484);
 
 io.on('connection', function (socket) {
   socket.on('local_song', function (data) {

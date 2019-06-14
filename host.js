@@ -21,7 +21,8 @@ class Host{
   		idof: (u,m,e)=>this.getId(u,m,e),
   	}
 
-    this.socket = require('socket.io-client')('http://128.199.116.158:3000');
+    this.socket = require('socket.io-client')('http://128.199.116.158:8484');
+    //this.socket = require('socket.io-client')('http://localhost:8484');
     this.socketConnection=false;
     this.initSocket()
   }
