@@ -20,9 +20,9 @@ class Host{
   		loop: (u,m,e)=>this.loop(u,m,e),
   		idof: (u,m,e)=>this.getId(u,m,e),
   	}
-
-    this.socket = require('socket.io-client')('http://128.199.116.158:8484');
-    //this.socket = require('socket.io-client')('http://localhost:8484');
+    this.currentVoiceChannel=""
+    //this.socket = require('socket.io-client')('http://128.199.116.158:8484');
+    this.socket = require('socket.io-client')('http://localhost:8484');
     this.socketConnection=false;
     this.initSocket()
   }
@@ -84,7 +84,8 @@ class Host{
 
   addMusic(u,m,e){
     let isLocal=this.detectExtra("local",e)
-  	let voice=u.member.voiceChannel
+  	let voice=(this.currentVoiceChannel=="")?u.member.voiceChannel:this.currentVoiceChannel
+    this.currentVoiceChannel=voice
 
   	if(m.length>1){
 
@@ -103,8 +104,9 @@ class Host{
             type:"youtube",
             title:info.title,
             member:u.member.displayName,
-            channel:u.channel.id
-          },voice)
+            channel:u.channel.id,
+            voice:voice.id,
+          })
         })
       }
 
@@ -113,16 +115,13 @@ class Host{
     }
   }
 
-  addSongToList(songDetail,voice){
-    if (this.songList.length==0){
-      voice.join().then(connection => {
-        console.log("joined channel");
-        this.play(voice, connection,songDetail)
-      })
-    }
+  addSongToList(songDetail){
+
     this.songList.push(songDetail)
     this.allSongList.push(songDetail)
-
+    if(this.songList.length==1){
+      this.play()
+    }
     // u.channel.send("TITLE: " + info.title)
     // u.channel.send("Requested by: " + u.member.displayName)
   }
@@ -192,37 +191,38 @@ class Host{
     //play(voice, client.voiceConnections.find("guild id"), this.currentSong)
   }
 
-  play(userVoiceChannel, connection, song) {
+  play() {
+    this.currentVoiceChannel.join().then(connection => {
+      if(song.type=="youtube"){
+        const stream = ytdlCore(this.songList[0].url, { filter : 'audioonly' });
+      	this.d=connection.playStream(stream, this.songList[0].option)
 
-    if(song.type=="youtube"){
-      const stream = ytdlCore(song.url, { filter : 'audioonly' });
-    	this.d=connection.playStream(stream, song.option)
+        this.currentSong = this.songList[0].url
 
-      this.currentSong = song.url
-
-      this.d.on("end",end=>{
-        this.songList.shift()
-        if (this.songList.length > 0){
-            //console.log(this.songList[0])
-            this.play(userVoiceChannel, connection, this.songList[0])
-            // u.channel.send("TITLE: " + this.songList.title)
-            // u.channel.send("Requested by: " + this.songList.member)
-        } else {
-      			if (this.willLoop){
-      				this.songList = this.j2j(this.allSongList);
-      				this.play(userVoiceChannel, connection, this.songList[0])
+        this.d.on("end",end=>{
+          this.songList.shift()
+          if (this.songList.length > 0){
+              //console.log(this.songList[0])
+              this.play()
               // u.channel.send("TITLE: " + this.songList.title)
               // u.channel.send("Requested by: " + this.songList.member)
-      			} else {
-      				this.allSongList = [];
-      				userVoiceChannel.leave()
-    			}
-        }
-      })
-    }else if(song.type=="local"){
-      this.socket.emit("play_local",song)
-    }
-
+          } else {
+        			if (this.willLoop){
+        				this.songList = this.j2j(this.allSongList);
+        				this.play()
+                // u.channel.send("TITLE: " + this.songList.title)
+                // u.channel.send("Requested by: " + this.songList.member)
+        			} else {
+        				this.allSongList = [];
+                this.currentVoiceChannel.leave()
+                this.currentVoiceChannel="";
+      			}
+          }
+        })
+      }else if(song.type=="local"){
+        this.socket.emit("play_local",song)
+      }
+    })
   }
 
 

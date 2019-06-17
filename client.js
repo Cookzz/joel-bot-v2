@@ -5,8 +5,8 @@ const client = new Discord.Client();
 const token = 'NDM0Nzg1MzY5NDc3NzQyNTky.DbSlZA.A0OQGlz3Jp7WUJgr1D-NNf1P1eE';
 let fs = require("fs");
 let client_detail = JSON.parse(fs.readFileSync("client_detail.json"));
-let socket = require('socket.io-client')('http://128.199.116.158:8484');
-//let socket = require('socket.io-client')('http://localhost:8484');
+//let socket = require('socket.io-client')('http://128.199.116.158:8484');
+let socket = require('socket.io-client')('http://localhost:8484');
 
 client.login(token)
 
