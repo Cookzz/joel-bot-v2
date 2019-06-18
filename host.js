@@ -1,19 +1,17 @@
 const ytdlCore = require('ytdl-core');
 const Message = require('./message.js');
 
-const msg = new Message()
-
 class Host{
   constructor(client) {
     this.prefix=","
     this.client=client
-    this.message = msg
     this.songList = [];
     this.allSongList = [];
     this.currentSong;
     this.willLoop = false;
     this.connected;
     this.d;
+    this.currentVoiceChannel="";
     this.command={
   		p:(u,m,e)=>this.addMusic(u,m,e),
   		s:(u,m,e)=>this.skip(u,m,e),
@@ -26,8 +24,8 @@ class Host{
       idof: (u,m,e)=>this.getId(u,m,e),
     }
 
-    this.socket = require('socket.io-client')('http://128.199.116.158:8484');
-    //this.socket = require('socket.io-client')('http://localhost:8484');
+    //this.socket = require('socket.io-client')('http://128.199.116.158:8484');
+    this.socket = require('socket.io-client')('http://localhost:8484');
     this.socketConnection=false;
     this.initSocket()
   }
@@ -82,9 +80,6 @@ class Host{
     console.log(newParam[0])
   	if(this.command.hasOwnProperty(newParam[0])){
   		this.command[newParam[0]](u,newParam,newExtra)
-    } 
-    else if (this.messageCommand.hasOwnProperty(newParam[0])){
-      this.messageCommand[newParam[0]](u,this.songList)
     }
     else{
   		u.reply("unknown command")
@@ -201,16 +196,14 @@ class Host{
   }
 
   getQueue(u,m,e){
-    this.message.queueList(u, this.songList)
-
-    
+    Message.queueList(u, this.songList)
   }
 
-  play(userVoiceChannel, connection, song) {
-
-    if(song.type=="youtube"){
-      const stream = ytdlCore(song.url, { filter : 'audioonly' });
-    	this.d=connection.playStream(stream, song.option)
+  play() {
+    this.currentVoiceChannel.join().then(connection => {
+      if(this.songList[0].type=="youtube"){
+        const stream = ytdlCore(this.songList[0].url, { filter : 'audioonly' });
+    	  this.d=connection.playStream(stream, this.songList[0].option)
 
         this.currentSong = this.songList[0].url
 
@@ -234,9 +227,10 @@ class Host{
       			}
           }
         })
-      }else if(song.type=="local"){
-        this.socket.emit("play_local",song)
+      }else if(this.songList[0].type=="local"){
+        this.socket.emit("play_local",this.songList[0])
       }
+    })
   }
 
 

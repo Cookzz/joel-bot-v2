@@ -25,16 +25,17 @@ class Message{
 
             console.log("embedding..")
 
-            // let embedded = embedMessage()
+            //get embedded from embedMessage()
+            let embedded = embedMessage()
 
-            // console.log("embedded")
+            console.log("embedded")
 
-            // return embedded
-            
+            return embedded //returns
+
         } else {
-            
+
         }
-        
+
     }
 
     static embedMessage(){
@@ -51,6 +52,8 @@ class Message{
         //         }
         //     ]
         // }
+
+        //start from here
         var embed = new Discord.RichEmbed()
         embed.setColor(16711680)
 
@@ -60,6 +63,7 @@ class Message{
 
         console.log("get embed")
 
+        //will return embedded message to queueList()
         return embed
 
     }

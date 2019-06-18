@@ -43,7 +43,8 @@ socket.on("play_local_song",(data)=>{
   console.log(data.voice)
 
   client.channels.get(data.voice).join().then(connection=>{
-    d=connection.playFile("./song/"+data.url, data.option)
+    console.log(data.url);
+    d=connection.playFile("song/"+data.url, data.option)
   }).catch(e => {
     console.error(e);
   });
