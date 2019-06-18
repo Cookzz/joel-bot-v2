@@ -7,65 +7,82 @@ class Message{
         this.messages = []
     }
 
-    static queueList(u,list){
+    static queueList(u,list,p){
         this.titles = []
         this.messages = []
-        let currentSong = list[0].title
-        let songList = ""
+
+        let songPages = []
+        let embeddedMsg = {}
 
         if (list.length > 0){
-            for (var i=1; i < list.length; i++){
-                songList += ("**" + i + "**. ") + (list[i].title + "\n")
+            let currentSong = list[0].title + "\n**Requested By:** " + list[0].member
+
+            if (list.length > 1){
+                songPages = this.addPage(u,list)
+            } else {
+                songPages.push("No songs are in queue at the moment")
             }
 
             this.titles.push("Currently Playing:")
             this.titles.push("Next:")
             this.messages.push(currentSong)
-            this.messages.push(songList)
+            this.messages.push(songPages[0])
 
             console.log("embedding..")
 
             //get embedded from embedMessage()
-            let embedded = embedMessage()
-
-            console.log("embedded")
-
-            return embedded //returns
-
+            embeddedMsg = this.embedMessage()
         } else {
-
+            embeddedMsg = {
+                "color": 16711680,
+                fields: [{
+                    "name": "N/A",
+                    "value": "No songs are playing at the moment"
+                }]
+            }
         }
 
+        return embeddedMsg
     }
 
     static embedMessage(){
-        // let embeddedMsg = {
-        //     "color": 16711680,
-        //     fields: [
-        //         {
-        //             name: "Currently Playing:",
-        //             value: ""
-        //         },
-        //         {
-        //             name: "Next:",
-        //             value: ""
-        //         }
-        //     ]
-        // }
-
-        //start from here
-        var embed = new Discord.RichEmbed()
-        embed.setColor(16711680)
-
-        for (var i=0; i < this.title.length; i++){
-            embed.addField(this.titles[i], this.messages[i])
+        let embeddedMsg = {
+            "color": 16711680,
+            fields: []
         }
 
-        console.log("get embed")
+        for (var i=0; i < this.titles.length; i++){
+            embeddedMsg.fields.push({
+                "name": this.titles[i],
+                "value": this.messages[i]
+            })
+        }
 
-        //will return embedded message to queueList()
-        return embed
+        return embeddedMsg
+    }
 
+    static addPage(u,list){
+        let songPages = []
+        let songList = ""
+        let page = 0
+        let maxSong = 10
+
+        songPages.push(songList)
+
+        for (var i=1; i < list.length; i++){
+            page = songPages.length-1
+            songList += ("**" + i + "**. ") + (list[i].title + "\n")
+
+            if (i%maxSong == 0){
+                songPages.push(songList)
+                maxSong += 10
+                songList = ""
+            } else {
+                songPages[page] = songList
+            }
+        }
+
+        return songPages
     }
 }
 

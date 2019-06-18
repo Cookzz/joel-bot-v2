@@ -53,6 +53,7 @@ class Host{
       }
     })
   }
+
   onMessage(message){
     let userVoiceChannel = message.member.voiceChannel
     let content = message.content.substr(1)
@@ -64,7 +65,6 @@ class Host{
         }
     }
   }
-
 
   sendCommand(u,m){
     let newParam=[]
@@ -196,7 +196,23 @@ class Host{
   }
 
   getQueue(u,m,e){
-    Message.queueList(u, this.songList)
+    let p = 0
+
+    if (m[1]){
+      let page = parseInt(m[1])
+
+      if (page > 0){
+        if (!(page > this.songList.length)){
+          p = (page-1)
+        } else {
+          u.channel.send("No such page exist.")
+        }
+      }
+    }
+
+    let embed = Message.queueList(u, this.songList, p)
+
+    u.channel.send({embed})
   }
 
   play() {
