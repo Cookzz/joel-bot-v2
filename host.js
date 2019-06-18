@@ -1,9 +1,13 @@
 const ytdlCore = require('ytdl-core');
+const Message = require('./message.js');
+
+const msg = new Message()
 
 class Host{
   constructor(client) {
     this.prefix=","
     this.client=client
+    this.message = msg
     this.songList = [];
     this.allSongList = [];
     this.currentSong;
@@ -16,10 +20,11 @@ class Host{
   		se:(u,m,e)=>this.seek(u,m,e),
   		pa: (u,m,e)=>this.pause(u,m,e),
   		re: (u,m,e)=>this.resume(u,m,e),
-  		l: (u,m,e)=>this.leave(u,m,e),
+      l: (u,m,e)=>this.leave(u,m,e),
+      q: (u,m,e)=>this.getQueue(u,m,e),
   		loop: (u,m,e)=>this.loop(u,m,e),
-  		idof: (u,m,e)=>this.getId(u,m,e),
-  	}
+      idof: (u,m,e)=>this.getId(u,m,e),
+    }
 
     this.socket = require('socket.io-client')('http://128.199.116.158:8484');
     //this.socket = require('socket.io-client')('http://localhost:8484');
@@ -77,7 +82,11 @@ class Host{
     console.log(newParam[0])
   	if(this.command.hasOwnProperty(newParam[0])){
   		this.command[newParam[0]](u,newParam,newExtra)
-  	}else{
+    } 
+    else if (this.messageCommand.hasOwnProperty(newParam[0])){
+      this.messageCommand[newParam[0]](u,this.songList)
+    }
+    else{
   		u.reply("unknown command")
   	}
   }
@@ -190,6 +199,12 @@ class Host{
     this.d.end();
 
     //play(voice, client.voiceConnections.find("guild id"), this.currentSong)
+  }
+
+  getQueue(u,m,e){
+    this.message.queueList(u, this.songList)
+
+    
   }
 
   play(userVoiceChannel, connection, song) {
