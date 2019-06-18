@@ -3,50 +3,85 @@ const Discord = require('discord.js');
 class Message{
 
     constructor(){
+        this.quoteList = []
         this.titles = []
         this.messages = []
     }
 
-    static queueList(u,list,p){
+    static queueList(client,list,p,q){
         this.titles = []
         this.messages = []
+        this.quoteList = q
+        this.pageSize=10
 
-        let songPages = []
-        let embeddedMsg = {}
+        let maxPage=Math.ceil(list.length/this.pageSize);
 
-        if (list.length > 0){
-            let currentSong = list[0].title + "\n**Requested By:** " + list[0].member
+        if(((p+1)>maxPage)||(p<0)){
 
-            if (list.length > 1){
-                songPages = this.addPage(u,list)
-            } else {
-                songPages.push("No songs are in queue at the moment")
-            }
+          return "No such page exist."
 
-            this.titles.push("Currently Playing:")
-            this.titles.push("Next:")
-            this.messages.push(currentSong)
-            this.messages.push(songPages[0])
+        }else{
+          let songPages = ""
+          let embeddedMsg = {}
 
-            console.log("embedding..")
+          if (list.length > 0){
+              let currentSong = list[0].title + "\n**Requested By:** " + list[0].member
 
-            //get embedded from embedMessage()
-            embeddedMsg = this.embedMessage()
-        } else {
-            embeddedMsg = {
-                "color": 16711680,
-                fields: [{
-                    "name": "N/A",
-                    "value": "No songs are playing at the moment"
-                }]
-            }
+              if (list.length > 1){
+                  let i=0;
+                  this.j2j(list).slice(p*this.pageSize,(p+1)*this.pageSize).forEach((s)=>{
+                    if(i>0){
+                      songPages+=("**" + (p*this.pageSize+i) + "**. ") + (s.title + "\n")
+                    }
+                    i++
+                  })
+              } else {
+                  songPages="No songs are in queue at the moment"
+              }
+
+              this.titles.push("Currently Playing:")
+              this.messages.push(currentSong)
+
+              this.titles.push("Next:")
+              this.messages.push(songPages)
+
+              console.log("embedding..")
+
+              //get embedded from embedMessage()
+              embeddedMsg = this.embedMessage(client,(list.length > 1)?{
+                "text":"page "+(p+1)+" of "+Math.ceil(list.length/this.pageSize)
+              }:false)
+          } else {
+              embeddedMsg = {
+                  "color": 16711680,
+                  fields: [{
+                      "name": "N/A",
+                      "value": "No songs are playing at the moment"
+                  }]
+              }
+          }
+
+          return embeddedMsg
         }
-
-        return embeddedMsg
     }
 
-    static embedMessage(){
+    static embedMessage(c,f){
+        let emojiName=[];
+
+        c.emojis.map(emoji => {
+          if (emoji.name.includes("jsmile")){
+            emojiName.push(emoji)
+          }
+        })
+
+        let no = Math.floor((Math.random() * emojiName.length))
+        let j = emojiName[no]
+
+        let quoteNo = Math.floor((Math.random() * this.quoteList.length))
+        let q = this.quoteList[quoteNo]
+
         let embeddedMsg = {
+            "title": `${j} - ${q}`,
             "color": 16711680,
             fields: []
         }
@@ -58,31 +93,15 @@ class Message{
             })
         }
 
-        return embeddedMsg
-    }
-
-    static addPage(u,list){
-        let songPages = []
-        let songList = ""
-        let page = 0
-        let maxSong = 10
-
-        songPages.push(songList)
-
-        for (var i=1; i < list.length; i++){
-            page = songPages.length-1
-            songList += ("**" + i + "**. ") + (list[i].title + "\n")
-
-            if (i%maxSong == 0){
-                songPages.push(songList)
-                maxSong += 10
-                songList = ""
-            } else {
-                songPages[page] = songList
-            }
+        if(f){
+          embeddedMsg.footer=f
         }
 
-        return songPages
+        return {"embed":embeddedMsg}
+    }
+
+    static j2j(j){
+      return JSON.parse(JSON.stringify(j));
     }
 }
 

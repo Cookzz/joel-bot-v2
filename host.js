@@ -7,21 +7,31 @@ class Host{
     this.client=client
     this.songList = [];
     this.allSongList = [];
+    this.quoteList = [
+      "Why lah bro",
+      "ER Diagram is my life",
+      "Love, Joel Mathew",
+      "Hi. I am Joel.",
+      "Invaded by ERDark spirit Joel Mathew"
+    ];
     this.currentSong;
     this.willLoop = false;
     this.connected;
     this.d;
     this.currentVoiceChannel="";
     this.command={
-  		p:(u,m,e)=>this.addMusic(u,m,e),
-  		s:(u,m,e)=>this.skip(u,m,e),
-  		se:(u,m,e)=>this.seek(u,m,e),
+  		p : (u,m,e)=>this.addMusic(u,m,e),
+  		mv: (u,m,e)=>this.move(u,m,e),
+  		rm: (u,m,e)=>this.remove(u,m,e),
+  		s : (u,m,e)=>this.skip(u,m,e),
+  		se: (u,m,e)=>this.seek(u,m,e),
   		pa: (u,m,e)=>this.pause(u,m,e),
   		re: (u,m,e)=>this.resume(u,m,e),
-      l: (u,m,e)=>this.leave(u,m,e),
-      q: (u,m,e)=>this.getQueue(u,m,e),
+      l : (u,m,e)=>this.leave(u,m,e),
+      q : (u,m,e)=>this.getQueue(u,m,e),
   		loop: (u,m,e)=>this.loop(u,m,e),
       idof: (u,m,e)=>this.getId(u,m,e),
+      addq: (u,m,e)=>this.addQuote(u,m,e)
     }
 
     //this.socket = require('socket.io-client')('http://128.199.116.158:8484');
@@ -86,6 +96,58 @@ class Host{
   	}
   }
 
+  addQuote(u,m,e){
+    if(m[1]){
+      this.quoteList.push(m[1]);
+    }
+  }
+
+  remove(u,m,e){
+    if(m.length<1){
+      u.channel.send("missing parameter!")
+    }else{
+      if(parseInt(m[1])){
+        let m1=parseInt(m[1])
+        if((m1>0&&m1<(this.songList.length)))
+        {
+          u.channel.send("Removed: " + this.songList[m1].title)
+          this.songList.splice(m1, 1);
+        }
+      }else{
+        u.channel.send("parameter need to be number")
+      }
+    }
+  }
+
+  move(u,m,e){
+    if(m.length<2){
+      u.channel.send("missing parameter!")
+    }else{
+      if(parseInt(m[1])&&parseInt(m[2])){
+        let m1=parseInt(m[1])
+        let m2=parseInt(m[2])
+        if(
+          (m1>0&&m1<(this.songList.length))&&
+          (m2>0&&m2<(this.songList.length))
+        ){
+          u.channel.send("Moved " + this.songList[m1].title + " to position " + m2)
+          if (m2 >= this.songList.length) {
+            var k = m2 - this.songList.length + 1;
+            while (k--) {
+              this.songList.push(undefined);
+            }
+          }
+          this.songList.splice(m2, 0, this.songList.splice(m1, 1)[0]);
+
+        }else{
+          u.channel.send("index out of bound")
+        }
+      }else{
+        u.channel.send("parameter need to be number")
+      }
+    }
+  }
+
   addMusic(u,m,e){
     let isLocal=this.detectExtra("local",e)
   	let voice=(this.currentVoiceChannel=="")?u.member.voiceChannel:this.currentVoiceChannel
@@ -102,6 +164,11 @@ class Host{
         })
       }else{
         ytdlCore.getInfo(m[1]).then((info) => {
+          u.channel.send("Added: " + info.title +
+          (
+            (this.songList.length!=0)?
+            ( " to position "+(this.songList.length)):"")
+          )
           this.addSongToList({
             url:m[1],
             option:{},
@@ -202,49 +269,47 @@ class Host{
       let page = parseInt(m[1])
 
       if (page > 0){
-        if (!(page > this.songList.length)){
-          p = (page-1)
-        } else {
-          u.channel.send("No such page exist.")
-        }
+        p = (page-1)
       }
     }
 
-    let embed = Message.queueList(u, this.songList, p)
+    let embed = Message.queueList(this.client,this.songList,p,this.quoteList)
 
-    u.channel.send({embed})
+    u.channel.send(embed)
   }
 
   play() {
     this.currentVoiceChannel.join().then(connection => {
-      if(this.songList[0].type=="youtube"){
-        const stream = ytdlCore(this.songList[0].url, { filter : 'audioonly' });
-    	  this.d=connection.playStream(stream, this.songList[0].option)
+      if(this.songList.length>0){
+        if(this.songList[0].type=="youtube"){
+          const stream = ytdlCore(this.songList[0].url, { filter : 'audioonly' });
+      	  this.d=connection.playStream(stream, this.songList[0].option)
 
-        this.currentSong = this.songList[0].url
+          this.currentSong = this.songList[0].url
 
-        this.d.on("end",end=>{
-          this.songList.shift()
-          if (this.songList.length > 0){
-              //console.log(this.songList[0])
-              this.play()
-              // u.channel.send("TITLE: " + this.songList.title)
-              // u.channel.send("Requested by: " + this.songList.member)
-          } else {
-        			if (this.willLoop){
-        				this.songList = this.j2j(this.allSongList);
-        				this.play()
+          this.d.on("end",end=>{
+            this.songList.shift()
+            if (this.songList.length > 0){
+                //console.log(this.songList[0])
+                this.play()
                 // u.channel.send("TITLE: " + this.songList.title)
                 // u.channel.send("Requested by: " + this.songList.member)
-        			} else {
-        				this.allSongList = [];
-                this.currentVoiceChannel.leave()
-                this.currentVoiceChannel="";
-      			}
-          }
-        })
-      }else if(this.songList[0].type=="local"){
-        this.socket.emit("play_local",this.songList[0])
+            } else {
+          			if (this.willLoop){
+          				this.songList = this.j2j(this.allSongList);
+          				this.play()
+                  // u.channel.send("TITLE: " + this.songList.title)
+                  // u.channel.send("Requested by: " + this.songList.member)
+          			} else {
+          				this.allSongList = [];
+                  this.currentVoiceChannel.leave()
+                  this.currentVoiceChannel="";
+        			}
+            }
+          })
+        }else if(this.songList[0].type=="local"){
+          this.socket.emit("play_local",this.songList[0])
+        }
       }
     })
   }
