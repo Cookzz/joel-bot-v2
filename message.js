@@ -65,7 +65,26 @@ class Message{
         }
     }
 
-    static embedMessage(c,f){
+    static getSongInfo(client,songInfo,q){
+        this.quoteList = q
+        this.titles = []
+        this.messages = []
+
+        this.titles.push("Title:")
+        this.messages.push("["+songInfo.details.title+"]("+songInfo.url+")")
+
+        this.titles.push("Author:")
+        this.messages.push(songInfo.details.author)
+
+        this.titles.push("Video Duration:")
+        this.messages.push(songInfo.details.duration)
+
+        let embedded = this.embedMessage(client,false,(songInfo.details.thumbnail_url)?songInfo.details.thumbnail_url:false)
+
+        return embedded
+    }
+
+    static embedMessage(c,f,tn){
         let emojiName=[];
 
         c.emojis.map(emoji => {
@@ -82,7 +101,7 @@ class Message{
 
         let embeddedMsg = {
             "title": `${j} - ${q}`,
-            "color": 16711680,
+            "color": 6910463,
             fields: []
         }
 
@@ -95,6 +114,12 @@ class Message{
 
         if(f){
           embeddedMsg.footer=f
+        }
+
+        if (tn){
+            embeddedMsg.image = {
+                "url": tn
+            }
         }
 
         return {"embed":embeddedMsg}

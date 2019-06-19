@@ -28,6 +28,7 @@ class Host{
   		pa: (u,m,e)=>this.pause(u,m,e),
   		re: (u,m,e)=>this.resume(u,m,e),
       l : (u,m,e)=>this.leave(u,m,e),
+      dt: (u,m,e)=>this.checkSong(u,m,e),
       q : (u,m,e)=>this.getQueue(u,m,e),
   		loop: (u,m,e)=>this.loop(u,m,e),
       idof: (u,m,e)=>this.getId(u,m,e),
@@ -39,6 +40,7 @@ class Host{
     this.socketConnection=false;
     this.initSocket()
   }
+
   initSocket(){
     this.socket.on("connect",()=>{
       this.socketConnection=true;
@@ -131,13 +133,20 @@ class Host{
           (m2>0&&m2<(this.songList.length))
         ){
           u.channel.send("Moved " + this.songList[m1].title + " to position " + m2)
+
           if (m2 >= this.songList.length) {
-            var k = m2 - this.songList.length + 1;
+            var k = m2 - this.songList.length + 1
             while (k--) {
-              this.songList.push(undefined);
+              this.songList.push(undefined)
             }
           }
-          this.songList.splice(m2, 0, this.songList.splice(m1, 1)[0]);
+
+          this.songList.splice(m2, 0, this.songList.splice(m1, 1)[0])
+
+          let allM1 = m1 + (this.allSongList.length - this.songList.length)
+          let allM2 = m2 + (this.allSongList.length - this.songList.length)
+
+          this.allSongList.splice(allM2, 0, this.songList.splice(allM1, 1)[0])
 
         }else{
           u.channel.send("index out of bound")
@@ -164,16 +173,27 @@ class Host{
         })
       }else{
         ytdlCore.getInfo(m[1]).then((info) => {
-          u.channel.send("Added: " + info.title +
+          let no = (info.player_response.videoDetails.thumbnail.thumbnails.length)-1
+          let sec = info.length_seconds
+          let minutes = Math.floor((sec/ 60)) + ""
+          let seconds = Math.floor((sec % 60)) + ""
+
+          u.channel.send("**Added:** " + info.title +
           (
             (this.songList.length!=0)?
             ( " to position "+(this.songList.length)):"")
           )
+
           this.addSongToList({
             url:m[1],
             option:{},
             type:"youtube",
-            title:info.title,
+            details:{
+              title: info.title,
+              author: info.player_response.videoDetails.author,
+              thumbnail_url: info.player_response.videoDetails.thumbnail.thumbnails[no].url,
+              duration: minutes + ":" + seconds
+            },
             member:u.member.displayName,
             channel:u.channel.id,
             voice:voice.id,
@@ -262,6 +282,38 @@ class Host{
     //play(voice, client.voiceConnections.find("guild id"), this.currentSong)
   }
 
+  checkSong(u,m,e){
+    let no = 0
+    let embed = null;
+    let reg = new RegExp('^[0-9]*$')
+
+    if (this.songList.length > 0){
+        let songNo = parseInt(m[1])
+
+        if (m[1]){
+          if (songNo > 0){
+            no = songNo
+          }
+        } 
+
+        let isNumber = (m[1])?m[1]:0
+
+        if (reg.test(isNumber)){
+          if (songNo && songNo > this.songList.length){
+            embed = "Song does not exist"
+          } else {
+            embed = Message.getSongInfo(this.client,this.songList[no],this.quoteList)
+          }
+        } else {
+          embed = "Parameter must be a number"
+        }
+        
+        u.channel.send(embed)
+    } else {
+      u.channel.send("There are no songs available")
+    }
+  }
+
   getQueue(u,m,e){
     let p = 0
 
@@ -290,16 +342,11 @@ class Host{
           this.d.on("end",end=>{
             this.songList.shift()
             if (this.songList.length > 0){
-                //console.log(this.songList[0])
                 this.play()
-                // u.channel.send("TITLE: " + this.songList.title)
-                // u.channel.send("Requested by: " + this.songList.member)
             } else {
           			if (this.willLoop){
           				this.songList = this.j2j(this.allSongList);
           				this.play()
-                  // u.channel.send("TITLE: " + this.songList.title)
-                  // u.channel.send("Requested by: " + this.songList.member)
           			} else {
           				this.allSongList = [];
                   this.currentVoiceChannel.leave()
