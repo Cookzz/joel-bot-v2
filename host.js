@@ -302,7 +302,11 @@ class Host{
           if (songNo && songNo > this.songList.length){
             embed = "Song does not exist"
           } else {
-            embed = Message.getSongInfo(this.client,this.songList[no],this.quoteList)
+            if (this.songList[no].type == "youtube"){
+              embed = Message.getSongInfo(this.client,this.songList[no],this.quoteList)
+            } else {
+              embed = "Such feature is not available to local songs yet"
+            }
           }
         } else {
           embed = "Parameter must be a number"
