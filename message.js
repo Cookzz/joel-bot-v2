@@ -79,6 +79,9 @@ class Message{
         this.titles.push("Video Duration:")
         this.messages.push(songInfo.details.duration)
 
+        this.titles.push("Requested By:")
+        this.messages.push(songInfo.member)
+
         let embedded = this.embedMessage(client,false,(songInfo.details.thumbnail_url)?songInfo.details.thumbnail_url:false)
 
         return embedded
