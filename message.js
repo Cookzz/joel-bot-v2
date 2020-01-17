@@ -25,7 +25,7 @@ class Message{
           let embeddedMsg = {}
 
           if (list.length > 0){
-              let currentSong = list[0].title + "\n**Requested By:** " + list[0].member
+              let currentSong = list[0].details.title + "\n**Requested By:** " + list[0].member
 
               if (list.length > 1){
                   let i=0;
@@ -70,6 +70,8 @@ class Message{
         this.titles = []
         this.messages = []
 
+        console.log("info",songInfo)
+
         this.titles.push("Title:")
         this.messages.push("["+songInfo.details.title+"]("+songInfo.url+")")
 
@@ -97,7 +99,7 @@ class Message{
         })
 
         let no = Math.floor((Math.random() * emojiName.length))
-        let j = emojiName[no]
+        let j = emojiName[no] || "Joel Bot"
 
         let quoteNo = Math.floor((Math.random() * this.quoteList.length))
         let q = this.quoteList[quoteNo]

@@ -159,7 +159,7 @@ class Host{
 
   addMusic(u,m,e){
     let isLocal=this.detectExtra("local",e)
-  	let voice=(this.currentVoiceChannel=="")?u.member.voiceChannel:this.currentVoiceChannel
+  	let voice=(this.currentVoiceChannel=="")?u.member.voice.channel:this.currentVoiceChannel
     this.currentVoiceChannel=voice
 
   	if(m.length>1){
@@ -219,7 +219,7 @@ class Host{
 
   loop(u,m,e){
     this.willLoop = !this.willLoop
-  	u.channel.send('Loop '+(willLoop?'enabled':'disabled'));
+  	u.channel.send('Loop '+(this.willLoop?'enabled':'disabled'));
   }
 
   skip(u,m,e) {
@@ -231,8 +231,8 @@ class Host{
   }
 
   leave(u,m,e) {
-  	let voice=u.member.voiceChannel
-  	let botConnection = u.guild.voiceConnection
+  	let voice=u.member.voice.channel
+  	let botConnection = u.guild.voice.connection
 
   	if (botConnection){
   		voice.leave()
@@ -339,7 +339,7 @@ class Host{
       if(this.songList.length>0){
         if(this.songList[0].type=="youtube"){
           const stream = ytdlCore(this.songList[0].url, { filter : 'audioonly' });
-      	  this.d=connection.playStream(stream, this.songList[0].option)
+      	  this.d=connection.play(stream, this.songList[0].option)
 
           this.currentSong = this.songList[0].url
 

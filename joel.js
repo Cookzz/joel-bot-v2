@@ -3,7 +3,7 @@ const Discord = require('discord.js');
 const Host = require('./host.js');
 
 const client = new Discord.Client();
-const token = 'NDM0Nzg1MzY5NDc3NzQyNTky.DbSlZA.A0OQGlz3Jp7WUJgr1D-NNf1P1eE';
+const { token } = require('./constants');
 const prefix = ","
 
 

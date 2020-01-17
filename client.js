@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 const ytdlCore = require('ytdl-core');
 
 const client = new Discord.Client();
-const token = 'NDM0Nzg1MzY5NDc3NzQyNTky.DbSlZA.A0OQGlz3Jp7WUJgr1D-NNf1P1eE';
+const { token } = require('./constants');
 let fs = require("fs");
 let client_detail = JSON.parse(fs.readFileSync("client_detail.json"));
 //let socket = require('socket.io-client')('http://128.199.116.158:8484');
@@ -44,7 +44,7 @@ socket.on("play_local_song",(data)=>{
 
   client.channels.get(data.voice).join().then(connection=>{
     console.log(data.url);
-    d=connection.playFile("song/"+data.url, data.option)
+    d=connection.play("song/"+data.url, data.option)
   }).catch(e => {
     console.error(e);
   });
