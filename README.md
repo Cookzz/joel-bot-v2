@@ -1,3 +1,5 @@
+# Joel Bot
+
 joel bot is now bigger better stronger manlier smarter faster
 
 now updated to discord.js v12.
