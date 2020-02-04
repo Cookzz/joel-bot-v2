@@ -1,5 +1,13 @@
 const ytdlCore = require('ytdl-core');
 const Message = require('./message.js');
+const ytpl = require('ytpl');
+const { YOUTUBE_API_KEY } = require('./constants');
+const ytplSummary = require('youtube-playlist-summary')
+const config = {
+  GOOGLE_API_KEY: YOUTUBE_API_KEY, // require
+  PLAYLIST_ITEM_KEY: ['videoUrl'], // option
+}
+const ps = new ytplSummary(config);
 
 class Host{
   constructor(client) {
@@ -19,6 +27,7 @@ class Host{
     this.connected;
     this.d;
     this.currentVoiceChannel="";
+    this.currentChannel="";
     this.command={
   		p : (u,m,e)=>this.addMusic(u,m,e),
   		mv: (u,m,e)=>this.move(u,m,e),
@@ -158,9 +167,12 @@ class Host{
   }
 
   addMusic(u,m,e){
+    let self = this
     let isLocal=this.detectExtra("local",e)
   	let voice=(this.currentVoiceChannel=="")?u.member.voice.channel:this.currentVoiceChannel
     this.currentVoiceChannel=voice
+
+    console.log(m)
 
   	if(m.length>1){
 
@@ -172,33 +184,95 @@ class Host{
           path:m[1]
         })
       }else{
-        ytdlCore.getInfo(m[1]).then((info) => {
-          let no = (info.player_response.videoDetails.thumbnail.thumbnails.length)-1
-          let sec = info.length_seconds
-          let minutes = Math.floor((sec/ 60)) + ""
-          let seconds = Math.floor((sec % 60)) + ""
+        if (m[1].includes("www.youtube.com")){
+          if (m[1].includes("list=")){
+            let id = /[&|\?]list=([a-zA-Z0-9_-]+)/gi.exec(m[1])
 
-          u.channel.send("**Added:** " + info.title +
-          (
-            (this.songList.length!=0)?
-            ( " to position "+(this.songList.length)):"")
-          )
+            ps.getPlaylistItems(id[1]).then((playlist)=>{
+              playlist.items.forEach(({videoUrl})=>{
+                ytdlCore.getInfo(videoUrl).then((info) => {
+                  let no = (info.player_response.videoDetails.thumbnail.thumbnails.length)-1
+                  let sec = info.length_seconds
+                  let minutes = Math.floor((sec/ 60)) + ""
+                  let seconds = Math.floor((sec % 60)) + ""
+        
+                  self.addSongToList({
+                    url:videoUrl,
+                    option:{},
+                    type:"youtube",
+                    details:{
+                      title: info.title,
+                      author: info.player_response.videoDetails.author,
+                      thumbnail_url: info.player_response.videoDetails.thumbnail.thumbnails[no].url,
+                      duration: minutes + ":" + seconds
+                    },
+                    member:u.member.displayName,
+                    channel:u.channel,
+                    voice:voice.id,
+                  })
+                })
+              })
+            }, (err)=>{
+              console.log(err)
 
-          this.addSongToList({
-            url:m[1],
-            option:{},
-            type:"youtube",
-            details:{
-              title: info.title,
-              author: info.player_response.videoDetails.author,
-              thumbnail_url: info.player_response.videoDetails.thumbnail.thumbnails[no].url,
-              duration: minutes + ":" + seconds
-            },
-            member:u.member.displayName,
-            channel:u.channel.id,
-            voice:voice.id,
-          })
-        })
+              //fallback (incase youtube api fails)
+              ytpl(m[1], (err, playlist)=>{
+                if (err){
+                  u.channel.send("No playlist found")
+                  return false;
+                }
+
+                playlist.items.forEach(({url_simple, title, thumbnail, duration, author})=>{
+                  self.addSongToList({
+                    url:url_simple,
+                    option:{},
+                    type:"youtube",
+                    details:{
+                      title: title,
+                      author: author.name,
+                      thumbnail_url: thumbnail,
+                      duration: duration
+                    },
+                    member:u.member.displayName,
+                    channel:u.channel,
+                    voice:voice.id,
+                  })
+                })
+              })
+            })
+
+          } else {
+
+            ytdlCore.getInfo(m[1]).then((info) => {
+              let no = (info.player_response.videoDetails.thumbnail.thumbnails.length)-1
+              let sec = info.length_seconds
+              let minutes = Math.floor((sec/ 60)) + ""
+              let seconds = Math.floor((sec % 60)) + ""
+    
+              u.channel.send("**Added:** " + info.title +
+              (
+                (this.songList.length!=0)?
+                ( " to position "+(this.songList.length)):"")
+              )
+    
+              this.addSongToList({
+                url:m[1],
+                option:{},
+                type:"youtube",
+                details:{
+                  title: info.title,
+                  author: info.player_response.videoDetails.author,
+                  thumbnail_url: info.player_response.videoDetails.thumbnail.thumbnails[no].url,
+                  duration: minutes + ":" + seconds
+                },
+                member:u.member.displayName,
+                channel:u.channel,
+                voice:voice.id,
+              })
+            })
+
+          }
+        }
       }
 
   	}else{
@@ -213,8 +287,7 @@ class Host{
     if(this.songList.length==1){
       this.play()
     }
-    // u.channel.send("TITLE: " + info.title)
-    // u.channel.send("Requested by: " + u.member.displayName)
+
   }
 
   loop(u,m,e){
@@ -335,6 +408,8 @@ class Host{
   }
 
   play() {
+    let embed = null;
+
     this.currentVoiceChannel.join().then(connection => {
       if(this.songList.length>0){
         if(this.songList[0].type=="youtube"){
@@ -342,6 +417,17 @@ class Host{
       	  this.d=connection.play(stream, this.songList[0].option)
 
           this.currentSong = this.songList[0].url
+
+          embed = {
+            fields: [
+              {
+                name: 'Now Playing:',
+                value: this.songList[0].details.title
+              }
+            ]
+          };
+
+          this.songList[0].channel.send({"embed":embed})
 
           this.d.on("end",end=>{
             this.songList.shift()
