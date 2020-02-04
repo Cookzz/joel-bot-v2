@@ -26,12 +26,12 @@ class Message{
 
           if (list.length > 0){
               let currentSong = list[0].details.title + "\n**Requested By:** " + list[0].member
-
+              console.log("song list ", list)
               if (list.length > 1){
                   let i=0;
                   this.j2j(list).slice(p*this.pageSize,(p+1)*this.pageSize).forEach((s)=>{
                     if(i>0){
-                      songPages+=("**" + (p*this.pageSize+i) + "**. ") + (s.title + "\n")
+                      songPages+=("**" + (p*this.pageSize+i) + "**. ") + (s.details.title + "\n")
                     }
                     i++
                   })
@@ -69,8 +69,6 @@ class Message{
         this.quoteList = q
         this.titles = []
         this.messages = []
-
-        console.log("info",songInfo)
 
         this.titles.push("Title:")
         this.messages.push("["+songInfo.details.title+"]("+songInfo.url+")")
