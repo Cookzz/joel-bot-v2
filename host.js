@@ -1,5 +1,6 @@
 const ytdlCore = require('ytdl-core');
 const Message = require('./message.js');
+const Socket = require('./socket.js');
 const ytpl = require('ytpl');
 const { YOUTUBE_API_KEY } = require('./constants');
 const ytplSummary = require('youtube-playlist-summary')
@@ -47,34 +48,13 @@ class Host{
     }
 
     //this.socket = require('socket.io-client')('http://128.199.116.158:8484');
-    this.socket = require('socket.io-client')('http://localhost:8484');
+    //this.socket = require('socket.io-client')('http://localhost:8484');
+    this.socket = new Socket(this)
     this.socketConnection=false;
-    this.initSocket()
   }
 
   initSocket(){
-    this.socket.on("connect",()=>{
-      this.socketConnection=true;
-      this.socket.emit("host",{
-
-      })
-    })
-
-    this.socket.on("add_local",(data)=>{
-      if(data.status=="fail"){
-        this.client.channels.get(data.channel).send("Add local fail! code: "+data.code);
-      }else{
-        // data.connection=this.client.voiceConnections.get("371828027388329984")
-        // console.log(data.connection);
-        this.addSongToList(data.detail)
-      }
-    })
-
-    this.socket.on("play_local_result",(data)=>{
-      if(data.status=="success"){
-        this.client.channels.get(data.channel).send("playing local");
-      }
-    })
+    
   }
 
   onMessage(message){
@@ -171,18 +151,19 @@ class Host{
   addMusic(u,m,e){
     let self = this
     let isLocal=this.detectExtra("local",e)
-  	let voice=(this.currentVoiceChannel=="")?u.member.voice.channel:this.currentVoiceChannel
-    this.currentVoiceChannel=voice
-
-    console.log(m)
+  	let voice=(this.currentVoiceChannel=="")?u.member.voice.channel.id:this.currentVoiceID
+    this.currentVoiceID = voice
 
   	if(m.length>1){
 
       if(isLocal){
-        this.socket.emit("client_add_music",{
+        
+        this.socket.toClient({
+          cmd:"find_local",
           client:u.member.id,
           channel:u.channel.id,
-          voice:voice.id,
+          guild:u.guild.id,
+          voice:voice,
           path:m[1]
         })
       }else{
@@ -210,7 +191,8 @@ class Host{
                     },
                     member:u.member.displayName,
                     channel:u.channel,
-                    voice:voice.id,
+                    guild :u.guild.id ,
+                    voice:voice,
                   })
                 })
               })
@@ -237,7 +219,8 @@ class Host{
                     },
                     member:u.member.displayName,
                     channel:u.channel,
-                    voice:voice.id,
+                    guild:u.guild.id,
+                    voice:voice,
                   })
                 })
               })
@@ -269,7 +252,8 @@ class Host{
                 },
                 member:u.member.displayName,
                 channel:u.channel,
-                voice:voice.id,
+                guild:u.guild.id,
+                voice:voice,
               })
             })
 
@@ -310,7 +294,8 @@ class Host{
                   },
                   member:u.member.displayName,
                   channel:u.channel,
-                  voice:voice.id,
+                  guild:u.guild.id,
+                  voice:voice,
                 })
               })
             }, (err)=>{
@@ -342,7 +327,11 @@ class Host{
 
   skip(u,m,e) {
       if (this.songList.length > 0){
-       	this.d.end();
+        if(this.songList[0].type=="local"){
+          this.socket.toClient({cmd:'skip', client:this.songList[0].member})
+        }else{
+          this.d.end();
+        }
       } else {
         u.reply("There's no more song to skip.")
       }
@@ -454,12 +443,15 @@ class Host{
 
   play() {
     let embed = null;
+    
 
-    this.currentVoiceChannel.join().then(connection => {
-      if(this.songList.length>0){
-        if(this.songList[0].type=="youtube"){
+    if(this.songList.length>0){
+      if(this.songList[0].type=="youtube"){
+        //console.log(this.songList[0]);
+        this.currentVoiceChannel = this.client.channels.get(this.songList[0].voice)
+        this.currentVoiceChannel.join().then(connection => {
           const stream = ytdlCore(this.songList[0].url, { filter : 'audioonly', quality: 'highestaudio', highWaterMark: 1<<25 });
-      	  this.d=connection.play(stream, this.songList[0].option)
+          this.d=connection.play(stream, this.songList[0].option)
 
           this.currentSong = this.songList[0].url
 
@@ -474,28 +466,57 @@ class Host{
 
           this.songList[0].channel.send({"embed":embed})
 
-          this.d.on("end",end=>{
-            this.songList.shift()
-            if (this.songList.length > 0){
-                this.play()
-            } else {
-          			if (this.willLoop){
-          				this.songList = this.j2j(this.allSongList);
-          				this.play()
-          			} else {
-          				this.allSongList = [];
-                  this.currentVoiceChannel.leave()
-                  this.currentVoiceChannel="";
-        			}
-            }
-          })
-        }else if(this.songList[0].type=="local"){
-          this.socket.emit("play_local",this.songList[0])
-        }
+          this.d.on("end",end=>this.songEnd())
+        })
+        
+        
+      }else if(this.songList[0].type=="local"){
+        //console.log(this.songList[0])
+        this.socket.toClient({
+          ...this.songList[0],
+          client:this.songList[0].member,
+          cmd:'play_local_song'
+        })
       }
-    })
+    }
   }
 
+
+  songEnd(){
+
+    let type = this.songList[0].type
+    let member = this.songList[0].member
+    
+    this.songList.shift()
+    if (this.songList.length > 0){
+        this.play()
+        console.log('continue play');
+        
+    } else {
+      console.log('no more song');
+      
+        if (this.willLoop){
+          this.songList = this.j2j(this.allSongList);
+          this.play()
+        } else {
+          //console.log(this.currentVoiceChannel);
+
+          this.allSongList = [];
+          if(type=='local'){
+            this.socket.toClient({
+              client:member,
+              cmd:'leave_channel'
+            })
+          }else{
+            console.log('leaving here');
+
+            this.currentVoiceChannel.leave()            
+            this.currentVoiceChannel="";
+          }
+          
+      }
+    }
+  }
 
   j2j(j){
     return JSON.parse(JSON.stringify(j));
@@ -524,5 +545,7 @@ class Host{
     })
   }
 }
+
+
 
 module.exports=Host
