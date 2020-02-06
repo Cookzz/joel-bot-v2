@@ -67,6 +67,18 @@ io.on('connection', function (socket) {
     host.socket.emit("play_local_result",data)
   })
 
+  socket.on("update_details", (data)=>{
+    console.log(data)
+    let u = data.u
+    let client = {
+      guild:u.guildID,
+      id:socket.id,
+      socket:socket
+    }
+
+    
+  })
+
   socket.on('disconnect',()=>{
     for(client in clientList){
       if(clientList[client].id==socket.id){

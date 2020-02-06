@@ -51,5 +51,18 @@ socket.on("play_local_song",(data)=>{
 
 })
 
+socket.on("update_client", (data)=>{
+  let u = data.u
+  console.log(data)
+  let guild = u.guild.id
+  let member = u.member.id
+
+  let json = {
+    "guild": guild,
+    "member": member
+  }
+  fs.writeFileSync('./client_detail.json', JSON.stringify(json))
+})
+
 socket.on("disconnect",()=>{
 })
