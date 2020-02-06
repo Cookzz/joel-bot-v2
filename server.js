@@ -39,8 +39,6 @@ io.on('connection', function (socket) {
       host.socket.emit('action', {cmd:'not_found'})
     }
   })
-
-  
 });
 
 

@@ -1,77 +1,66 @@
 const Discord = require('discord.js');
 
-const client = new Discord.Client();
+let client = new Discord.Client();
 const { token } = require('./constants');
 let fs = require("fs");
 let client_detail = JSON.parse(fs.readFileSync("client_detail.json"));
 //let socket = require('socket.io-client')('http://128.199.116.158:8484');
 let socket = require('socket.io-client')('http://localhost:8484');
 
+client.login(token)
 
 let songStream;
 let currentVoiceChannel;
-const find_local = data => {
-  console.log('hi')
-  toHost({
-    cmd:'add_local',
-    status:"success",
-    detail:{
-      url:data.path,
-      option:{},
-      type:"local",
-      title:data.path,
-      member:client_detail.member,
-      channel:data.channel,
-      guild:data.guild,
-      voice:data.voice,
-    }
-  });
-}
 
-const play_local_song = data => {
-  currentVoiceChannel = client.channels.get(data.voice)
-  //console.log(currentVoiceChannel);
+let actions = {
+  find_local: data => {
+    toHost({
+      cmd:'add_local',
+      status:"success",
+      detail:{
+        url:data.path,
+        option:{},
+        type:"local",
+        title:data.path,
+        member:client_detail.member,
+        channel:data.channel,
+        guild:data.guild,
+        voice:data.voice,
+      }
+    });
+  },
   
-  currentVoiceChannel.join().then(connection=>{
-    console.log(data.url);
-    songStream=connection.play("song/"+data.url, data.option)
-    songStream.on('end',end=>{
-      toHost({
-        cmd:'local_song_end',
-        status:"success",
+  play_local_song: data => {
+    //TODO: change to more valid operation
+    //shouldn't every time reconnect after play a song
+    client = new Discord.Client();
+    client.login(token)
+    client.on('ready', () => {
+      currentVoiceChannel = client.channels.get(data.voice)
+      currentVoiceChannel.join().then(connection=>{
+
+        songStream=connection.play("song/"+data.url, data.option)
+        songStream.on('end',end=>{
+          toHost({
+            cmd:'local_song_end',
+            status:"success",
+          })
+        })
       })
-    })
-  }).catch(e => {
-    console.error(e);
-  });
+    }); 
+  },
+  
+  skip: data =>{
+    songStream.end()
+  },
+  
+  leave_channel: data => {
+    currentVoiceChannel.leave()
+    currentVoiceChannel =''
+    conn = ''
+  }
 }
 
-const skip = data =>{
-  songStream.end()
-}
-
-const leave_channel = data => {
-  currentVoiceChannel.leave()
-  currentVoiceChannel =''
-}
-
-
-const actions = {
-  find_local,
-  play_local_song,
-  skip,
-  leave_channel
-}
-
-client.login(token)
-
-client.on('ready', () => {
-    console.log('client is ready')
-});
-
-client.on("error", () => {
-    console.log("client error!")
-});
 
 socket.on("connect",()=>{
   console.log("yes")

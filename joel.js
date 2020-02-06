@@ -14,8 +14,4 @@ client.on('ready', () => {
     console.log('joel bot ready')
 });
 
-client.on("error", function () {
-    console.log("error!")
-});
-
 client.on('message', async message => host.onMessage(message));

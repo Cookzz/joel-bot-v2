@@ -31,6 +31,7 @@ class Host{
     this.d;
     this.currentVoiceChannel="";
     this.currentChannel="";
+    this.conn = ''
     this.command={
   		p : (u,m,e)=>this.addMusic(u,m,e),
   		mv: (u,m,e)=>this.move(u,m,e),
@@ -468,8 +469,6 @@ class Host{
 
           this.d.on("end",end=>this.songEnd())
         })
-        
-        
       }else if(this.songList[0].type=="local"){
         //console.log(this.songList[0])
         this.socket.toClient({
