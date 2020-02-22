@@ -451,7 +451,9 @@ class Host{
         //console.log(this.songList[0]);
         this.currentVoiceChannel = this.client.channels.get(this.songList[0].voice)
         this.currentVoiceChannel.join().then(connection => {
+          
           const stream = ytdlCore(this.songList[0].url, { filter : 'audioonly', quality: 'highestaudio', highWaterMark: 1<<25 });
+          
           this.d=connection.play(stream, this.songList[0].option)
 
           this.currentSong = this.songList[0].url

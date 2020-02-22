@@ -1,7 +1,7 @@
 class Socket{
     constructor(host){
         this.host = host
-        this.socket = require('socket.io-client')('http://localhost:8484');
+        this.socket = require('socket.io-client')('http://167.99.64.187:8484');
 
         this.action = {
             add_local:this.addLocal,

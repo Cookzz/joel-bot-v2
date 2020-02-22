@@ -5,7 +5,7 @@ const { token } = require('./constants');
 let fs = require("fs");
 let client_detail = JSON.parse(fs.readFileSync("client_detail.json"));
 //let socket = require('socket.io-client')('http://128.199.116.158:8484');
-let socket = require('socket.io-client')('http://localhost:8484');
+let socket = require('socket.io-client')('http://167.99.64.187:8484');
 
 client.login(token)
 
@@ -40,6 +40,7 @@ let actions = {
       currentVoiceChannel.join().then(connection=>{
 
         songStream=connection.play("song/"+data.url, data.option)
+        
         songStream.on('end',end=>{
           toHost({
             cmd:'local_song_end',
@@ -65,6 +66,11 @@ let actions = {
 socket.on("connect",()=>{
   console.log("yes")
   socket.emit("client",client_detail)
+})
+
+socket.on('error',()=>{
+  console.log('nono');
+  
 })
 
 socket.on('action',data => {

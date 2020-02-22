@@ -6,6 +6,10 @@ let host={};
 app.listen(8484);
 
 io.on('connection', function (socket) {
+  console.log(
+    'server running...'
+  );
+  
   socket.on("host",(data)=>{
     host={
       id:socket.id,
