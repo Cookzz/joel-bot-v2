@@ -6,7 +6,6 @@ const client = new Discord.Client();
 const { token } = require('./constants');
 const prefix = ","
 
-
 const host=new Host(client)
 client.login(token)
 
