@@ -10,7 +10,7 @@ const fs = require('fs')
 
 const config = {
   GOOGLE_API_KEY: YOUTUBE_API_KEY, // require
-  PLAYLIST_ITEM_KEY: ['videoUrl'], // option
+  PLAYLIST_ITEM_KEY: ['videoUrl','title'], // option
 }
 const ps = new ytplSummary(config);
 
@@ -25,6 +25,8 @@ class Player{
         this.currentSong;
         this.currentVoiceChannel = ""
         this.currentVoiceID = ""
+        this.socket = new Socket(this)
+        this.socketConnection=false;
     }
 
     async add(u,m,e){
@@ -56,7 +58,7 @@ class Player{
         this.allSongList = this.allSongList.concat(list)
 
         console.log("song list")
-        console.log(this.songList)
+        //console.log(this.songList)
 
         if(this.songList.length==1 && !isPlaylist){
             this.play()
@@ -67,42 +69,53 @@ class Player{
         let embed = null;
 
         if(this.songList.length>0){
-            if(this.songList[0].type=="youtube"){
-              //console.log(this.songList[0]);
-              this.currentVoiceChannel = this.client.channels.get(this.songList[0].voice)
-              this.currentVoiceChannel.join().then(connection => {
-                const stream = ytdlCore(this.songList[0].url, { filter : 'audioonly', quality: 'highestaudio', highWaterMark: 1<<25 });
-                this.d=connection.play(stream, this.songList[0].option)
-      
-                this.currentSong = this.songList[0].url
-      
-                embed = {
-                  fields: [
-                    {
-                      name: 'Now Playing:',
-                      value: this.songList[0].details.title
-                    }
-                  ]
-                };
-      
-                this.songList[0].channel.send({"embed":embed})
-      
-                this.d.on("end",end=>this.songEnd())
-              })
-            }else if(this.songList[0].type=="local"){
-              //console.log(this.songList[0])
-              this.socket.toClient({
-                ...this.songList[0],
-                client:this.songList[0].member,
-                cmd:'play_local_song'
-              })
-            }
+          if(this.songList[0].type=="youtube"){
+            //console.log(this.songList[0]);
+            this.currentVoiceChannel = this.client.channels.get(this.songList[0].voice)
+            this.currentVoiceChannel.join().then(connection => {
+              const stream = ytdlCore(this.songList[0].url, { filter : 'audioonly', quality: 'highestaudio', highWaterMark: 1<<25 });
+              this.d=connection.play(stream, this.songList[0].option)
+    
+              this.currentSong = this.songList[0].url
+    
+              embed = {
+                fields: [
+                  {
+                    name: 'Now Playing:',
+                    value: this.songList[0].details.title
+                  }
+                ]
+              };
+    
+              this.songList[0].channel.send({"embed":embed})
+    
+              this.d.on("end",end=>this.songEnd())
+            })
+          }else if(this.songList[0].type=="local"){
+            //console.log(this.songList[0])
+            this.socket.toClient({
+              ...this.songList[0],
+              client:this.songList[0].member_id,
+              cmd:'play_local_song'
+            })
+            
+            embed = {
+              fields: [
+                {
+                  name: 'Now Playing:',
+                  value: this.songList[0].details.title
+                }
+              ]
+            };
+  
+            this.client.channels.get(this.songList[0].channel).send({"embed":embed})
           }
+        }
     }
 
     songEnd(){
         let type = this.songList[0].type
-        let member = this.songList[0].member
+        let member_id = this.songList[0].member_id
         
         this.songList.shift()
         if (this.songList.length > 0){
@@ -110,32 +123,33 @@ class Player{
             console.log('continue play');
             
         } else {
-        console.log('no more song');
+            console.log('no more song');
         
             if (this.willLoop){
                 this.songList = this.j2j(this.allSongList);
                 this.play()
             } else {
             //console.log(this.currentVoiceChannel);
+              this.allSongList = [];
 
-                this.allSongList = [];
-                if(type=='local'){
-                    this.socket.toClient({
-                        client:member,
-                        cmd:'leave_channel'
-                    })
-                }else{
-                    console.log('leaving here');
+              if(type=='local'){
+                  this.socket.toClient({
+                      client:member_id,
+                      cmd:'leave_channel'
+                  })
+              }else{
+                  console.log('leaving here');
 
-                    this.currentVoiceChannel.leave()            
-                    this.currentVoiceChannel="";
-                }
-            
+                  this.currentVoiceChannel.leave()            
+                  this.currentVoiceChannel="";
+              }
+
             }
         }
     }
 
-    /* Keep first -- this has rather fast performance but not a very clean method */
+    /*
+    Keep first -- this has rather fast performance but not a very clean method 
     // fromPlaylist(u,m,e){
     //     let id = /[&|\?]list=([a-zA-Z0-9_-]+)/gi.exec(m[1])
     //     let self = this
@@ -193,14 +207,31 @@ class Player{
     //         })
     //     })
     // }
+    */
 
     /* WORKING -- but slow performance */
     async fromPlaylist(u,m,e){
         let id = /[&|\?]list=([a-zA-Z0-9_-]+)/gi.exec(m[1])
         try {
-            let playlist = await ps.getPlaylistItems(id[1])
 
-            let finalList = await Promise.all(
+            let playlist = await ps.getPlaylistItems(id[1])
+            let allDetails = playlist.items.map(({videoUrl,title})=>({
+              url:videoUrl,
+              option:{},
+              type:"youtube",
+              details:{
+                  title: title,
+                  
+              },
+              member:u.member.displayName,
+              channel:u.channel,
+              voice:this.currentVoiceID,
+            }))
+            this.songList.push(allDetails[0]);
+            this.play();
+
+
+            Promise.all(
                 playlist.items.map(async ({videoUrl}, i)=>{
                     let info = await ytdlCore.getInfo(videoUrl)
                     let no = (info.player_response.videoDetails.thumbnail.thumbnails.length)-1
@@ -208,33 +239,39 @@ class Player{
                     let minutes = Math.floor((sec/ 60)) + ""
                     let seconds = Math.floor((sec % 60)) + ""
                 
-                    let details = {
-                        url:videoUrl,
-                        option:{},
-                        type:"youtube",
-                        details:{
-                            title: info.title,
-                            author: info.player_response.videoDetails.author,
-                            thumbnail_url: info.player_response.videoDetails.thumbnail.thumbnails[no].url,
-                            duration: minutes + ":" + seconds
-                        },
-                        member:u.member.displayName,
-                        channel:u.channel,
-                        voice:this.currentVoiceID,
-                    }
+                    // let details = {
+                    //     url:videoUrl,
+                    //     option:{},
+                    //     type:"youtube",
+                    //     details:{
+                    //         title: info.title,
+                    //         author: info.player_response.videoDetails.author,
+                    //         thumbnail_url: info.player_response.videoDetails.thumbnail.thumbnails[no].url,
+                    //         duration: minutes + ":" + seconds
+                    //     },
+                    //     member:u.member.displayName,
+                    //     channel:u.channel,
+                    //     voice:this.currentVoiceID,
+                    // }
 
-                    if (i == 0 && this.songList.length == 0){
-                        this.songList.push(details);
-                        this.play();
-                    } else {
-                        return details
+                    allDetails[i].details = {
+                      ...allDetails[i].details,
+                      author: info.player_response.videoDetails.author,
+                      thumbnail_url: info.player_response.videoDetails.thumbnail.thumbnails[no].url,
+                      duration: minutes + ":" + seconds
                     }
+                    // if (i == 0 && this.songList.length == 0){
+                    //     this.songList.push(details);
+                    //     this.play();
+                    // } else {
+                    //     return details
+                    // }
                 })
             )
+            
+            //allDetails.shift();
 
-            finalList.shift();
-
-            return finalList
+            return allDetails
         } catch (err){
             u.channel.send("No playlist found.")
             //fallback
@@ -277,32 +314,32 @@ class Player{
 
     fromLink(u,m,e){
         return ytdlCore.getInfo(m[1]).then((info) => {
-            let no = (info.player_response.videoDetails.thumbnail.thumbnails.length)-1
-            let sec = info.length_seconds
-            let minutes = Math.floor((sec/ 60)) + ""
-            let seconds = Math.floor((sec % 60)) + ""
-  
-            u.channel.send("**Added:** " + info.title +
-            (
-              (this.songList.length!=0)?
-              ( " to position "+(this.songList.length)):"")
-            )
-  
-            return [{
-              url:m[1],
-              option:{highWaterMark: 1},
-              type:"youtube",
-              details:{
-                title: info.title,
-                author: info.player_response.videoDetails.author,
-                thumbnail_url: info.player_response.videoDetails.thumbnail.thumbnails[no].url,
-                duration: minutes + ":" + seconds
-              },
-              member:u.member.displayName,
-              channel:u.channel,
-              voice:this.currentVoiceID,
-            }]
-          })
+          let no = (info.player_response.videoDetails.thumbnail.thumbnails.length)-1
+          let sec = info.length_seconds
+          let minutes = Math.floor((sec/ 60)) + ""
+          let seconds = Math.floor((sec % 60)) + ""
+
+          u.channel.send("**Added:** " + info.title +
+          (
+            (this.songList.length!=0)?
+            ( " to position "+(this.songList.length)):"")
+          )
+
+          return [{
+            url:m[1],
+            option:{highWaterMark: 1},
+            type:"youtube",
+            details:{
+              title: info.title,
+              author: info.player_response.videoDetails.author,
+              thumbnail_url: info.player_response.videoDetails.thumbnail.thumbnails[no].url,
+              duration: minutes + ":" + seconds
+            },
+            member:u.member.displayName,
+            channel:u.channel,
+            voice:this.currentVoiceID,
+          }]
+        })
     }
 
     async fromSearch(u,m,e){
@@ -358,62 +395,62 @@ class Player{
 
     /** Player Actions **/
     remove(u,m,e){
-        if(m.length<1){
-          u.channel.send("missing parameter!")
-        }else{
-          if(parseInt(m[1])){
-            let m1=parseInt(m[1])
-            if((m1>0&&m1<(this.songList.length)))
-            {
-              u.channel.send("Removed: " + this.songList[m1].title)
-              this.songList.splice(m1, 1);
-            }
-          }else{
-            u.channel.send("parameter need to be number")
+      if(m.length<1){
+        u.channel.send("missing parameter!")
+      }else{
+        if(parseInt(m[1])){
+          let m1=parseInt(m[1])
+          if((m1>0&&m1<(this.songList.length)))
+          {
+            u.channel.send("Removed: " + this.songList[m1].title)
+            this.songList.splice(m1, 1);
           }
+        }else{
+          u.channel.send("parameter need to be number")
         }
       }
+    }
     
-      move(u,m,e){
-        if(m.length<2){
-          u.channel.send("missing parameter!")
-        }else{
-          if(parseInt(m[1])&&parseInt(m[2])){
-            let m1=parseInt(m[1])
-            let m2=parseInt(m[2])
-            if(
-              (m1>0&&m1<(this.songList.length))&&
-              (m2>0&&m2<(this.songList.length))
-            ){
-              u.channel.send("Moved " + this.songList[m1].title + " to position " + m2)
-    
-              if (m2 >= this.songList.length) {
-                var k = m2 - this.songList.length + 1
-                while (k--) {
-                  this.songList.push(undefined)
-                }
+    move(u,m,e){
+      if(m.length<2){
+        u.channel.send("missing parameter!")
+      }else{
+        if(parseInt(m[1])&&parseInt(m[2])){
+          let m1=parseInt(m[1])
+          let m2=parseInt(m[2])
+          if(
+            (m1>0&&m1<(this.songList.length))&&
+            (m2>0&&m2<(this.songList.length))
+          ){
+            u.channel.send("Moved " + this.songList[m1].title + " to position " + m2)
+  
+            if (m2 >= this.songList.length) {
+              var k = m2 - this.songList.length + 1
+              while (k--) {
+                this.songList.push(undefined)
               }
-    
-              this.songList.splice(m2, 0, this.songList.splice(m1, 1)[0])
-    
-              let allM1 = m1 + (this.allSongList.length - this.songList.length)
-              let allM2 = m2 + (this.allSongList.length - this.songList.length)
-    
-              this.allSongList.splice(allM2, 0, this.songList.splice(allM1, 1)[0])
-    
-            }else{
-              u.channel.send("index out of bound")
             }
+  
+            this.songList.splice(m2, 0, this.songList.splice(m1, 1)[0])
+  
+            let allM1 = m1 + (this.allSongList.length - this.songList.length)
+            let allM2 = m2 + (this.allSongList.length - this.songList.length)
+  
+            this.allSongList.splice(allM2, 0, this.songList.splice(allM1, 1)[0])
+  
           }else{
-            u.channel.send("parameter need to be number")
+            u.channel.send("index out of bound")
           }
+        }else{
+          u.channel.send("parameter need to be number")
         }
+      }
     }
 
     skip(u,m,e){
         if (this.songList.length > 0){
             if(this.songList[0].type=="local"){
-              this.socket.toClient({cmd:'skip', client:this.songList[0].member})
+              this.socket.toClient({cmd:'skip', client:this.songList[0].member_id})
             }else{
               this.d.end();
             }
@@ -478,61 +515,74 @@ class Player{
     }
 
     checkSong(u,m,e, quoteList){
-        let no = 0
-        let embed = null;
-        let reg = new RegExp('^[0-9]*$')
-    
-        if (this.songList.length > 0){
-            let songNo = parseInt(m[1])
-    
-            if (m[1]){
-              if (songNo > 0){
-                no = songNo
-              }
-            } 
-    
-            let isNumber = (m[1])?m[1]:0
-    
-            if (reg.test(isNumber)){
-              if (songNo && songNo > this.songList.length){
-                embed = "Song does not exist"
-              } else {
-                if (this.songList[no].type == "youtube"){
-                  embed = Message.getSongInfo(this.client,this.songList[no],quoteList)
-                } else {
-                  embed = "Such feature is not available to local songs yet"
-                }
-              }
-            } else {
-              embed = "Parameter must be a number"
+      let no = 0
+      let embed = null;
+      let reg = new RegExp('^[0-9]*$')
+  
+      if (this.songList.length > 0){
+          let songNo = parseInt(m[1])
+  
+          if (m[1]){
+            if (songNo > 0){
+              no = songNo
             }
-            
-            u.channel.send(embed)
-        } else {
-          u.channel.send("There are no songs available")
-        }
-      }
-    
-      getQueue(u,m,e, quoteList){
-        let p = 0
-    
-        if (m[1]){
-          let page = parseInt(m[1])
-    
-          if (page > 0){
-            p = (page-1)
+          } 
+  
+          let isNumber = (m[1])?m[1]:0
+  
+          if (reg.test(isNumber)){
+            if (songNo && songNo > this.songList.length){
+              embed = "Song does not exist"
+            } else {
+              if (this.songList[no].type == "youtube"){
+                embed = Message.getSongInfo(this.client,this.songList[no],quoteList)
+              } else {
+                embed = "Such feature is not available to local songs yet"
+              }
+            }
+          } else {
+            embed = "Parameter must be a number"
           }
+          
+          u.channel.send(embed)
+      } else {
+        u.channel.send("There are no songs available")
+      }
+    }
+    
+    getQueue(u,m,e, quoteList){
+      let p = 0
+  
+      if (m[1]){
+        let page = parseInt(m[1])
+  
+        if (page > 0){
+          p = (page-1)
         }
-    
-        let embed = Message.queueList(this.client,this.songList,p,quoteList)
-    
-        u.channel.send(embed)
       }
+  
+      let embed = Message.queueList(this.client,this.songList,p,quoteList)
+  
+      u.channel.send(embed)
+    }
 
-      /* Misc */
-      j2j(j){
-        return JSON.parse(JSON.stringify(j));
-      }
+    /* Misc */
+    j2j(j){
+      return JSON.parse(JSON.stringify(j));
+    }
 }
 
 module.exports=Player
+
+
+class Song{
+  constructor(title,link){
+    //init...
+    //run promise
+    this.promise()
+  }
+
+  promise(){
+
+  }
+}

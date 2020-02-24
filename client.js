@@ -21,8 +21,11 @@ let actions = {
         url:data.path,
         option:{},
         type:"local",
-        title:data.path,
-        member:client_detail.member,
+        details:{
+          title:data.path,
+        },
+        member:data.member,
+        member_id:client_detail.member,
         channel:data.channel,
         guild:data.guild,
         voice:data.voice,

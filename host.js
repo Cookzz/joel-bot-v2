@@ -92,6 +92,7 @@ class Host{
         this.socket.toClient({
           cmd:"find_local",
           client:u.member.id,
+          member:u.member.displayName,
           channel:u.channel.id,
           guild:u.guild.id,
           voice:voice,
