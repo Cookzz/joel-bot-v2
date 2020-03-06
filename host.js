@@ -10,7 +10,7 @@ class Host{
     //this.socket = require('socket.io-client')('http://128.199.116.158:8484');
     //this.socket = require('socket.io-client')('http://localhost:8484');
     this.socket = new Socket(this)
-    this.player = new Player(client)
+    this.player = new Player()
     this.socketConnection=false;
 
     //need to move quotelist to Message.js soon

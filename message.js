@@ -26,7 +26,7 @@ class Message{
 
           if (list.length > 0){
               let currentSong = list[0].details.title + "\n**Requested By:** " + list[0].member
-              console.log("song list ", list)
+              //console.log("song list ", list)
               if (list.length > 1){
                   let i=0;
                   this.j2j(list).slice(p*this.pageSize,(p+1)*this.pageSize).forEach((s)=>{
@@ -72,15 +72,20 @@ class Message{
 
         this.titles.push("Title:")
         this.messages.push("["+songInfo.details.title+"]("+songInfo.url+")")
-
-        this.titles.push("Author:")
-        this.messages.push(songInfo.details.author)
-
-        this.titles.push("Video Duration:")
-        this.messages.push(songInfo.details.duration)
-
-        this.titles.push("Requested By:")
-        this.messages.push(songInfo.member)
+        if(songInfo.details.author){
+          this.titles.push("Author:")
+          this.messages.push(songInfo.details.author)
+  
+          this.titles.push("Video Duration:")
+          this.messages.push(songInfo.details.duration)
+  
+          this.titles.push("Requested By:")
+          this.messages.push(songInfo.member)
+        }else{
+          this.titles.push("Other Detail still loading!")
+          this.messages.push('try again later')
+        }
+        
 
         let embedded = this.embedMessage(client,false,(songInfo.details.thumbnail_url)?songInfo.details.thumbnail_url:false)
 

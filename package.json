@@ -20,8 +20,10 @@
   "dependencies": {
     "@discordjs/opus": "^0.1.0",
     "discord.js": "github:discordjs/discord.js",
+    "express": "^4.17.1",
     "ffmpeg": "0.0.4",
     "ffmpeg-static": "^3.0.0",
+    "find": "^0.3.0",
     "fs": "0.0.1-security",
     "http": "0.0.0",
     "prism-media": "0.0.4",

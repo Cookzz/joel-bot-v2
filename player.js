@@ -3,10 +3,11 @@ const ytpl = require('ytpl');
 const ytplSummary = require('youtube-playlist-summary')
 const searchYoutube = require('youtube-api-v3-search');
 
-const { YOUTUBE_API_KEY } = require('./constants');
+const { YOUTUBE_API_KEY, token } = require('./constants');
 const Socket = require('./socket.js');
 const Message = require('./message.js');
 const fs = require('fs')
+const Discord = require('discord.js');
 
 const config = {
   GOOGLE_API_KEY: YOUTUBE_API_KEY, // require
@@ -16,8 +17,14 @@ const ps = new ytplSummary(config);
 
 class Player{
 
-    constructor(client){
-        this.client = client
+    constructor(){
+        this.client = new Discord.Client();
+        this.client.login(token)
+
+        this.client.on('ready', () => {
+            console.log('joel player bot ready')
+        });
+
         this.songList = [];
         this.allSongList = [];
         this.d;
@@ -27,6 +34,8 @@ class Player{
         this.currentVoiceID = ""
         this.socket = new Socket(this)
         this.socketConnection=false;
+        this.requiredReLogin=true;
+        //this.host = host
     }
 
     async add(u,m,e){
@@ -65,34 +74,57 @@ class Player{
         }
     }
 
-    play(){
-        let embed = null;
 
+    playYoutube(){
+      let embed = null;
+
+      this.currentVoiceChannel = this.client.channels.get(this.songList[0].voice)
+      this.currentVoiceChannel.join().then(connection => {
+        const stream = ytdlCore(this.songList[0].url, { filter : 'audioonly', quality: 'highestaudio', highWaterMark: 1<<25 });
+        this.d=connection.play(stream, this.songList[0].option)
+
+        this.currentSong = this.songList[0].url
+
+        embed = {
+          fields: [
+            {
+              name: 'Now Playing:',
+              value: this.songList[0].details.title
+            }
+          ]
+        };
+
+        this.songList[0].channel.send({"embed":embed})
+
+        this.d.on("end",end=>this.songEnd())
+      })
+    }
+
+    play(){
         if(this.songList.length>0){
           if(this.songList[0].type=="youtube"){
             //console.log(this.songList[0]);
-            this.currentVoiceChannel = this.client.channels.get(this.songList[0].voice)
-            this.currentVoiceChannel.join().then(connection => {
-              const stream = ytdlCore(this.songList[0].url, { filter : 'audioonly', quality: 'highestaudio', highWaterMark: 1<<25 });
-              this.d=connection.play(stream, this.songList[0].option)
-    
-              this.currentSong = this.songList[0].url
-    
-              embed = {
-                fields: [
-                  {
-                    name: 'Now Playing:',
-                    value: this.songList[0].details.title
-                  }
-                ]
-              };
-    
-              this.songList[0].channel.send({"embed":embed})
-    
-              this.d.on("end",end=>this.songEnd())
-            })
+            if(this.requiredReLogin){
+              this.client = new Discord.Client();
+              this.client.login(token)
+
+              this.client.on('ready', () => {
+                this.requiredReLogin = false;
+                this.socket.toAll({
+                  client:'host',
+                  cmd:'need_relogin'
+                })
+                this.playYoutube()
+                //this.client.on('message', async message => this.host.onMessage(message));
+              });
+
+            }else{
+              this.playYoutube();
+            }
+            
           }else if(this.songList[0].type=="local"){
-            //console.log(this.songList[0])
+            console.log(this.songList[0])
+            let embed;
             this.socket.toClient({
               ...this.songList[0],
               client:this.songList[0].member_id,
@@ -209,6 +241,58 @@ class Player{
     // }
     */
 
+    async getListDetail(first,all,items){
+      for(let i in items){
+        console.log(i)
+        let info = await ytdlCore.getInfo(items[i].videoUrl);
+        let no = (info.player_response.videoDetails.thumbnail.thumbnails.length)-1
+        let sec = info.length_seconds
+        let minutes = Math.floor((sec/ 60)) + ""
+        let seconds = Math.floor((sec % 60)) + ""
+        if(i!=0){
+          all[i-1].details = {
+            ...all[i-1].details,
+            author: info.player_response.videoDetails.author,
+            thumbnail_url: info.player_response.videoDetails.thumbnail.thumbnails[no].url,
+            duration: minutes + ":" + seconds
+          }
+        }else{
+          first.details = {
+            ...first.details,
+            author: info.player_response.videoDetails.author,
+            thumbnail_url: info.player_response.videoDetails.thumbnail.thumbnails[no].url,
+            duration: minutes + ":" + seconds
+          }
+        } 
+        
+        // ytdlCore.getInfo(items[i].videoUrl).then(info=>{
+        //   console.log(i)
+
+        //   let no = (info.player_response.videoDetails.thumbnail.thumbnails.length)-1
+        //   let sec = info.length_seconds
+        //   let minutes = Math.floor((sec/ 60)) + ""
+        //   let seconds = Math.floor((sec % 60)) + ""
+        //   if(i!=0){
+        //     all[i-1].details = {
+        //       ...all[i-1].details,
+        //       author: info.player_response.videoDetails.author,
+        //       thumbnail_url: info.player_response.videoDetails.thumbnail.thumbnails[no].url,
+        //       duration: minutes + ":" + seconds
+        //     }
+        //   }else{
+        //     first.details = {
+        //       ...first.details,
+        //       author: info.player_response.videoDetails.author,
+        //       thumbnail_url: info.player_response.videoDetails.thumbnail.thumbnails[no].url,
+        //       duration: minutes + ":" + seconds
+        //     }
+        //   }           
+        // })
+      }
+
+
+
+    }
     /* WORKING -- but slow performance */
     async fromPlaylist(u,m,e){
         let id = /[&|\?]list=([a-zA-Z0-9_-]+)/gi.exec(m[1])
@@ -227,53 +311,29 @@ class Player{
               channel:u.channel,
               voice:this.currentVoiceID,
             }))
-            this.songList.push(allDetails[0]);
+
+            let firstSong = {
+              url:playlist.items[0].videoUrl,
+              option:{},
+              type:"youtube",
+              details:{
+                  title: playlist.items[0].title,
+              },
+              member:u.member.displayName,
+              channel:u.channel,
+              voice:this.currentVoiceID,
+            }
+            allDetails.shift();
+
+            this.songList.push(firstSong);
             this.play();
 
-
-            Promise.all(
-                playlist.items.map(async ({videoUrl}, i)=>{
-                    let info = await ytdlCore.getInfo(videoUrl)
-                    let no = (info.player_response.videoDetails.thumbnail.thumbnails.length)-1
-                    let sec = info.length_seconds
-                    let minutes = Math.floor((sec/ 60)) + ""
-                    let seconds = Math.floor((sec % 60)) + ""
-                
-                    // let details = {
-                    //     url:videoUrl,
-                    //     option:{},
-                    //     type:"youtube",
-                    //     details:{
-                    //         title: info.title,
-                    //         author: info.player_response.videoDetails.author,
-                    //         thumbnail_url: info.player_response.videoDetails.thumbnail.thumbnails[no].url,
-                    //         duration: minutes + ":" + seconds
-                    //     },
-                    //     member:u.member.displayName,
-                    //     channel:u.channel,
-                    //     voice:this.currentVoiceID,
-                    // }
-
-                    allDetails[i].details = {
-                      ...allDetails[i].details,
-                      author: info.player_response.videoDetails.author,
-                      thumbnail_url: info.player_response.videoDetails.thumbnail.thumbnails[no].url,
-                      duration: minutes + ":" + seconds
-                    }
-                    // if (i == 0 && this.songList.length == 0){
-                    //     this.songList.push(details);
-                    //     this.play();
-                    // } else {
-                    //     return details
-                    // }
-                })
-            )
-            
-            //allDetails.shift();
+            this.getListDetail(firstSong,allDetails,playlist.items)
 
             return allDetails
         } catch (err){
             u.channel.send("No playlist found.")
+            console.error(err)
             //fallback
             // ytpl(m[1], (err, playlist)=>{
             //     if (err){

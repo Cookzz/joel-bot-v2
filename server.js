@@ -43,6 +43,18 @@ io.on('connection', function (socket) {
       host.socket.emit('action', {cmd:'not_found'})
     }
   })
+
+  socket.on('to_all',data=>{
+    for(client in clientList){
+      if(client != data.client){
+        clientList[client].socket.emit('action',data)
+      }
+    }
+
+    if(data.client != 'host'){
+      host.socket.emit('action', data)    
+    }
+  })
 });
 
 
