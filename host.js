@@ -82,28 +82,32 @@ class Host{
 
   addMusic(u,m,e){
     let isLocal=this.detectExtra("local",e)
-  	let voice=u.member.voice.channel.id
-    this.currentVoiceID = voice
-
-  	if(m.length>1){
-
-      if(isLocal){
-        
-        this.socket.toClient({
-          cmd:"find_local",
-          client:u.member.id,
-          member:u.member.displayName,
-          channel:u.channel.id,
-          guild:u.guild.id,
-          voice:voice,
-          path:m[1]
-        })
+    if(u.member.voice.channel){
+      let voice=u.member.voice.channel.id
+      this.currentVoiceID = voice
+  
+      if(m.length>1){
+  
+        if(isLocal){
+          
+          this.socket.toClient({
+            cmd:"find_local",
+            client:u.member.id,
+            member:u.member.displayName,
+            channel:u.channel.id,
+            guild:u.guild.id,
+            voice:voice,
+            path:m[1]
+          })
+        }else{
+          this.player.add(u,m,e)
+        }
+  
       }else{
-        this.player.add(u,m,e)
+        u.reply("missing parameter")
       }
-
-  	}else{
-  		u.reply("missing parameter")
+    }else{
+      u.reply("fuck you bitch ah, not in channel also want pick song, cause so many bug")
     }
   }
 
