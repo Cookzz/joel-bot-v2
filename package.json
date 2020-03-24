@@ -19,6 +19,7 @@
   "homepage": "https://github.com/Cookzz/joel-bot-v2#readme",
   "dependencies": {
     "@discordjs/opus": "^0.1.0",
+    "axios": "^0.19.2",
     "discord.js": "github:discordjs/discord.js",
     "express": "^4.17.1",
     "ffmpeg": "0.0.4",

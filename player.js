@@ -8,6 +8,7 @@ const Socket = require('./socket.js');
 const Message = require('./message.js');
 const fs = require('fs')
 const Discord = require('discord.js');
+const axios = require("axios");
 
 const config = {
   GOOGLE_API_KEY: YOUTUBE_API_KEY, // require
@@ -82,6 +83,12 @@ class Player{
       this.currentVoiceChannel.join().then(connection => {
         const stream = ytdlCore(this.songList[0].url, { filter : 'audioonly', quality: 'highestaudio', highWaterMark: 1<<25 });
         this.d=connection.play(stream, this.songList[0].option)
+        
+        this.d.on('disconnect',()=>{
+          this.songList = []
+        })
+        this.d.on("end",end=>this.songEnd())
+
 
         this.currentSong = this.songList[0].url
 
@@ -96,7 +103,6 @@ class Player{
 
         this.songList[0].channel.send({"embed":embed})
 
-        this.d.on("end",end=>this.songEnd())
       })
     }
 
@@ -299,36 +305,47 @@ class Player{
         try {
 
             let playlist = await ps.getPlaylistItems(id[1])
-            let allDetails = playlist.items.map(({videoUrl,title})=>({
-              url:videoUrl,
-              option:{},
-              type:"youtube",
-              details:{
-                  title: title,
-                  
-              },
-              member:u.member.displayName,
-              channel:u.channel,
-              voice:this.currentVoiceID,
-            }))
+            
+            let ids = playlist.items.map(({videoUrl})=>videoUrl.split('?v=')[1]).join(',')
+
+            let reqUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,player,snippet&id=${ids}&key=${YOUTUBE_API_KEY}`
+            
+            const response = await axios.get(reqUrl);
+            const playListItem = response.data.items;
+            //console.log(playListItem)
+            let allDetails = playListItem.map(({id,snippet,contentDetails})=>{
+              let duration = contentDetails.duration.replace('PT','')
+
+              let h = (duration.match(/(\d+)(?=H)/g) || '0')+''
+              let m = (duration.match(/(\d+)(?=M)/g) || '0')+''
+              let s = (duration.match(/(\d+)(?=S)/g) || '0')+''
+              console.log(m);
+              let pad = s => s.padStart(2, '0')
+
+              return {
+                url:`https://www.youtube.com/watch?v=${id}`,
+                option:{},
+                type:"youtube",
+                details:{
+                    title: snippet.title,
+                    author: snippet.channelTitle,
+                    thumbnail_url: snippet.thumbnails.high.url,
+                    duration: `${pad(h)}:${pad(m)}:${pad(s)}`
+                },
+                member:u.member.displayName,
+                channel:u.channel,
+                voice:this.currentVoiceID,
+              }
+            })
 
             let firstSong = {
-              url:playlist.items[0].videoUrl,
-              option:{},
-              type:"youtube",
-              details:{
-                  title: playlist.items[0].title,
-              },
-              member:u.member.displayName,
-              channel:u.channel,
-              voice:this.currentVoiceID,
+              ...allDetails[0]
             }
             allDetails.shift();
 
             this.songList.push(firstSong);
             this.play();
 
-            this.getListDetail(firstSong,allDetails,playlist.items)
 
             return allDetails
         } catch (err){
@@ -527,11 +544,12 @@ class Player{
     leave(u,m,e) {
         let voice=u.member.voice.channel
         let botConnection = u.guild.voice.connection
-
+        console.log(botConnection);
+        
         if (botConnection){
-            voice.leave()
-            u.channel.send('Left voice channel.')
-            this.songList = []
+          this.currentVoiceChannel.leave()              
+          u.channel.send('Left voice channel.')
+          this.songList = []
         } else {
             u.channel.send('I am not in a voice channel.')
         }
