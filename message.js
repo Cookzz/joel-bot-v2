@@ -95,11 +95,11 @@ class Message{
     static embedMessage(c,f,tn){
         let emojiName=[];
 
-        c.emojis.map(emoji => {
-          if (emoji.name.includes("jsmile")){
-            emojiName.push(emoji)
-          }
-        })
+        // c.emojis.map(emoji => {
+        //   if (emoji.name.includes("jsmile")){
+        //     emojiName.push(emoji)
+        //   }
+        // })
 
         let no = Math.floor((Math.random() * emojiName.length))
         let j = emojiName[no] || "Joel Bot"

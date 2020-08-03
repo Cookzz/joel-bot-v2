@@ -1,7 +1,7 @@
 const ytdlCore = require('ytdl-core');
 const ytpl = require('ytpl');
 const ytplSummary = require('youtube-playlist-summary')
-const searchYoutube = require('youtube-api-v3-search');
+// const searchYoutube = require('youtube-api-v3-search');
 
 const { YOUTUBE_API_KEY, token } = require('./constants');
 const Socket = require('./socket.js');
@@ -15,6 +15,9 @@ const config = {
   PLAYLIST_ITEM_KEY: ['videoUrl','title'], // option
 }
 const ps = new ytplSummary(config);
+
+const { YouTube } = require('popyt')
+const youtube = new YouTube(YOUTUBE_API_KEY)
 
 class Player{
 
@@ -76,23 +79,23 @@ class Player{
     }
 
 
-    playYoutube(){
-      let embed = null;
+    async playYoutube(){
+      const playYoutube = () => this.playYoutube()
+      
+      this.currentVoiceChannel = await this.client.channels.fetch(this.songList[0].voice)
 
-      this.currentVoiceChannel = this.client.channels.get(this.songList[0].voice)
       this.currentVoiceChannel.join().then(connection => {
         const stream = ytdlCore(this.songList[0].url, { filter : 'audioonly', quality: 'highestaudio', highWaterMark: 1<<25 });
         this.d=connection.play(stream, this.songList[0].option)
         
-        this.d.on('disconnect',()=>{
+        connection.on('disconnect',()=>{
           this.songList = []
         })
-        this.d.on("end",end=>this.songEnd())
+        this.d.on("finish", end=>this.songEnd())
 
+        this.currentSong = this.songList[0]
 
-        this.currentSong = this.songList[0].url
-
-        embed = {
+        let embed = {
           fields: [
             {
               name: 'Now Playing:',
@@ -103,6 +106,9 @@ class Player{
 
         this.songList[0].channel.send({"embed":embed})
 
+      }, (err)=>{
+        console.log(err)
+        playYoutube();
       })
     }
 
@@ -154,6 +160,8 @@ class Player{
     songEnd(){
         let type = this.songList[0].type
         let member_id = this.songList[0].member_id
+
+        console.log("song ended")
         
         this.songList.shift()
         if (this.songList.length > 0){
@@ -196,7 +204,7 @@ class Player{
     //         playlist.items.forEach(({videoUrl})=>{
     //             ytdlCore.getInfo(videoUrl).then((info) => {
     //                 let no = (info.player_response.videoDetails.thumbnail.thumbnails.length)-1
-    //                 let sec = info.length_seconds
+    //                 let sec = info.videoDetails.lengthSeconds
     //                 let minutes = Math.floor((sec/ 60)) + ""
     //                 let seconds = Math.floor((sec % 60)) + ""
         
@@ -205,7 +213,7 @@ class Player{
     //                     option:{},
     //                     type:"youtube",
     //                     details:{
-    //                         title: info.title,
+    //                         title: info.videoDetails.title,
     //                         author: info.player_response.videoDetails.author,
     //                         thumbnail_url: info.player_response.videoDetails.thumbnail.thumbnails[no].url,
     //                         duration: minutes + ":" + seconds
@@ -252,7 +260,7 @@ class Player{
         console.log(i)
         let info = await ytdlCore.getInfo(items[i].videoUrl);
         let no = (info.player_response.videoDetails.thumbnail.thumbnails.length)-1
-        let sec = info.length_seconds
+        let sec = info.videoDetails.lengthSeconds
         let minutes = Math.floor((sec/ 60)) + ""
         let seconds = Math.floor((sec % 60)) + ""
         if(i!=0){
@@ -275,7 +283,7 @@ class Player{
         //   console.log(i)
 
         //   let no = (info.player_response.videoDetails.thumbnail.thumbnails.length)-1
-        //   let sec = info.length_seconds
+        //   let sec = info.videoDetails.lengthSeconds
         //   let minutes = Math.floor((sec/ 60)) + ""
         //   let seconds = Math.floor((sec % 60)) + ""
         //   if(i!=0){
@@ -299,7 +307,7 @@ class Player{
 
 
     }
-    /* WORKING -- but slow performance */
+    /* WORKING -- uses google api and get json via api call */
     async fromPlaylist(u,m,e){
         let id = /[&|\?]list=([a-zA-Z0-9_-]+)/gi.exec(m[1])
         try {
@@ -392,11 +400,11 @@ class Player{
     fromLink(u,m,e){
         return ytdlCore.getInfo(m[1]).then((info) => {
           let no = (info.player_response.videoDetails.thumbnail.thumbnails.length)-1
-          let sec = info.length_seconds
+          let sec = info.videoDetails.lengthSeconds
           let minutes = Math.floor((sec/ 60)) + ""
           let seconds = Math.floor((sec % 60)) + ""
 
-          u.channel.send("**Added:** " + info.title +
+          u.channel.send("**Added:** " + info.videoDetails.title +
           (
             (this.songList.length!=0)?
             ( " to position "+(this.songList.length)):"")
@@ -407,7 +415,7 @@ class Player{
             option:{highWaterMark: 1},
             type:"youtube",
             details:{
-              title: info.title,
+              title: info.videoDetails.title,
               author: info.player_response.videoDetails.author,
               thumbnail_url: info.player_response.videoDetails.thumbnail.thumbnails[no].url,
               duration: minutes + ":" + seconds
@@ -424,22 +432,22 @@ class Player{
         m.shift()
         let query = m.join(' ')
 
-        let options = {
-            q: query,
-            part:'snippet',
-            type:'video',
-            maxResults: 1
-        }
+        // let options = {
+        //     q: query,
+        //     part:'snippet',
+        //     type:'video',
+        //     maxResults: 1
+        // }
 
         let msg = await u.channel.send("Searching for the video...")
 
-        return searchYoutube(YOUTUBE_API_KEY, options).then((res)=>{
-            msg.delete(1000);
+        return youtube.getVideo(query).then((res)=>{
+            msg.delete({timeout:1000});
 
             const {
                 id,
                 snippet
-            } = res.items[0]
+            } = res.data
 
             const { channelTitle, thumbnails, title } = snippet
 
@@ -450,7 +458,7 @@ class Player{
             )
 
             return [{
-                url: 'https://www.youtube.com/watch?v='+id.videoId,
+                url: 'https://www.youtube.com/watch?v='+id,
                 option:{},
                 type:"youtube",
                 details:{
@@ -479,7 +487,7 @@ class Player{
           let m1=parseInt(m[1])
           if((m1>0&&m1<(this.songList.length)))
           {
-            u.channel.send("Removed: " + this.songList[m1].title)
+            u.channel.send("Removed: " + this.songList[m1].details.title)
             this.songList.splice(m1, 1);
           }
         }else{
@@ -499,7 +507,7 @@ class Player{
             (m1>0&&m1<(this.songList.length))&&
             (m2>0&&m2<(this.songList.length))
           ){
-            u.channel.send("Moved " + this.songList[m1].title + " to position " + m2)
+            u.channel.send("Moved " + this.songList[m1].details.title + " to position " + m2)
   
             if (m2 >= this.songList.length) {
               var k = m2 - this.songList.length + 1
@@ -529,7 +537,13 @@ class Player{
             if(this.songList[0].type=="local"){
               this.socket.toClient({cmd:'skip', client:this.songList[0].member_id})
             }else{
-              this.d.end();
+              console.log("destroyed")
+              try {
+                this.d.end();
+              } catch (err){
+                console.log(err)
+              }
+              
             }
         } else {
             u.reply("There's no more song to skip.")
@@ -542,17 +556,21 @@ class Player{
     }
 
     leave(u,m,e) {
-        let voice=u.member.voice.channel
-        let botConnection = u.guild.voice.connection
-        console.log(botConnection);
+      // let voice=u.member.voice.channel
+      // let botConnection = u.guild.channels.guild.voice.
+      // console.log(botConnection);
+      let botConnection = (this.currentVoiceID != "")
         
-        if (botConnection){
-          this.currentVoiceChannel.leave()              
-          u.channel.send('Left voice channel.')
-          this.songList = []
-        } else {
-            u.channel.send('I am not in a voice channel.')
-        }
+      if (botConnection){
+        this.currentVoiceChannel.leave()    
+        this.currentVoiceID = ""
+        this.currentVoiceChannel = ""  
+        this.songList = []
+                
+        u.channel.send('Left voice channel.')
+      } else {
+          u.channel.send('I am not in a voice channel.')
+      }
     }
 
     pause(u,m,e){
@@ -583,7 +601,7 @@ class Player{
         console.log("seek entered")
 
         this.songList.splice(1, 0, {
-            url:this.currentSong,
+            ...this.currentSong,
             option:{
                 seek: parseInt(time)
             }
