@@ -27,18 +27,18 @@ const { YouTube } = require('popyt')
 const youtube = new YouTube(YOUTUBE_API_KEY)
 
 class Player {
-		private readonly client;
-		private songList: any[];
-		private allSongList: any[];
-		private d: any;
-		private willLoop: boolean;
-		private currentSong: any;
-		private currentVoiceChannel: any | null;
+    private readonly client;
+    private songList: any[];
+    private allSongList: any[];
+    private d: any;
+    private willLoop: boolean;
+    private currentSong: any;
+    private currentVoiceChannel: any | null;
     private audioPlayer: AudioPlayer;
     private currentConnection: VoiceConnection | null;
-		private currentVoiceID: any | null;
-		private socketConnection: boolean;
-		private requiredReLogin: boolean;
+    private currentVoiceID: any | null;
+    private socketConnection: boolean;
+    private requiredReLogin: boolean;
 
     constructor(client: Client){
         this.client = client;
