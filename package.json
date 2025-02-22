@@ -19,7 +19,6 @@
     "@distube/ytdl-core": "^4.16.4",
     "discord.js": "^14.18.0",
     "ffmpeg": "^0.0.4",
-    "fs": "^0.0.1-security",
     "ky": "^1.7.5",
     "libsodium-wrappers": "^0.7.15",
     "popyt": "^7.1.1",

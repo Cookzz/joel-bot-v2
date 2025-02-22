@@ -2,9 +2,9 @@ import type { Channel } from "discord.js"
 
 export interface MusicDetails {
     url: string,
-    option: {
-        highWaterMark: number
-    },
+    path: string,
+    options: any[],
+    hasDownloaded: boolean,
     type: string,
     details: AdditionalDetails,
     member: string,

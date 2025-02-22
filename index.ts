@@ -3,10 +3,25 @@ import { Client, Collection, Events, GatewayIntentBits, REST, Routes } from 'dis
 import { TOKEN, CLIENT_ID } from './config.json'
 import COMMANDS from './src/commands'
 import Host from './src/host';
+import YTDlpWrap from 'yt-dlp-wrap';
+import { platform } from 'os';
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 
 const cmd = COMMANDS
+
+try {
+  //Download the yt-dlp binary for the given version and platform to the provided path.
+  //By default the latest version will be downloaded to "./yt-dlp" and platform = os.platform().
+  await YTDlpWrap.downloadFromGithub(
+    `./binaries/yt-dlp${platform() === 'win32' ? '.exe' : ''}`, //Platform dependent
+    undefined,
+    platform()
+  );
+} catch (error) {
+  console.error(error);
+}
+
 
 try {
 	console.log('Started refreshing application (/) commands.');
@@ -40,8 +55,6 @@ client.on(Events.InteractionCreate, async interaction => {
   const url = interaction.options.getString('url') ?? 'No url provided';
 
   if (interaction.commandName === 'play') {
-    // await interaction.reply(`Pong this - ${reason}`);
-
     host.onCommand(interaction, interaction.commandName, url)
   }
 

@@ -1,23 +1,20 @@
-import { Client, EmbedBuilder } from 'discord.js'
+import { ChatInputCommandInteraction, Client, EmbedBuilder, type CacheType } from 'discord.js'
 import { 
   joinVoiceChannel, 
   createAudioPlayer,
   VoiceConnection, 
-  VoiceConnectionStatus, 
   AudioPlayer,
   createAudioResource,
-  StreamType
 } from '@discordjs/voice';
-import { j2j } from './utils/common.util';
 import ytdlCore from '@distube/ytdl-core'
+import YTDlpWrap from 'yt-dlp-wrap';
+import { existsSync, rmSync } from 'node:fs'
+import { platform } from 'os';
+import { j2j, randomId } from './utils/common.util';
 import type { MusicDetails } from './types/music-details.type';
 
-// const ytpl = require('ytpl');
-// import { createWriteStream } from 'fs'
-// const ytdlCore = require('ytdl-core');
-// const searchYoutube = require('youtube-api-v3-search');
-
 const { YOUTUBE_API_KEY } = require('../config.json');
+const ytDlpWrap = new YTDlpWrap(`./binaries/yt-dlp${platform() === 'win32' ? '.exe' : ''}`);
 
 const config = {
   GOOGLE_API_KEY: YOUTUBE_API_KEY, // require
@@ -28,17 +25,15 @@ const youtube = new YouTube(YOUTUBE_API_KEY)
 
 class Player {
     private readonly client;
-    private songList: any[];
-    private allSongList: any[];
+    private songList: MusicDetails[]; //"current" list
+    private allSongList: MusicDetails[]; //we store it separately in case the user wants to loop the whole list again
     private d: any;
     private willLoop: boolean;
     private currentSong: any;
-    private currentVoiceChannel: any | null;
     private audioPlayer: AudioPlayer;
     private currentConnection: VoiceConnection | null;
     private currentVoiceID: any | null;
-    private socketConnection: boolean;
-    private requiredReLogin: boolean;
+    private interaction: ChatInputCommandInteraction<CacheType> | null;
 
     constructor(client: Client){
         this.client = client;
@@ -47,13 +42,22 @@ class Player {
         this.d;
         this.willLoop = false;
         this.currentSong;
-        this.currentVoiceChannel = ""
         this.audioPlayer = createAudioPlayer()
         this.currentConnection = null
         this.currentVoiceID = ""
-        this.socketConnection=false;
-        this.requiredReLogin=true;
-        //this.host = host
+        this.interaction = null;
+
+        this.init()
+    }
+
+    public init() {
+      this.audioPlayer.addListener('stateChange', (oldState, newState)=>{
+        console.log("check state", newState.status)
+        //here, when the audio player is in an idle state, we will just assume the music has ended
+        if (newState.status === 'idle') {
+          this.songEnd()
+        }
+      })
     }
 
     public setVoiceId(id: any){
@@ -84,56 +88,32 @@ class Player {
     //   this.toList(list, isPlaylist)
     // }
 
-    async add(int: any, url: string){
+    async add(int: ChatInputCommandInteraction<CacheType>, url: string){
       let isPlaylist = false;
       let list = null;
+      
       list = await this.fromLink(int, url)
       
-      this.toList(list, isPlaylist)
-    }
-
-    toList(list: any[], isPlaylist: boolean){
       this.songList = this.songList.concat(list)
       this.allSongList = this.allSongList.concat(list)
 
-      console.log("song list")
-      //console.log(this.songList)
+      if (url.includes("list=")){
+        int.ephemeral = true
+        int.reply("Playlist not supported yet.")
+      }
 
-      if (this.songList.length==1 && !isPlaylist) {
+      if (this.songList.length == 1 && !isPlaylist) {
           this.play()
       }
     }
 
     play(){
-      if(this.songList.length>0){
-        if(this.songList[0].type=="youtube"){
-          //console.log(this.songList[0]);
-          // if(this.requiredReLogin){
-          //   this.client = new Discord.Client();
-          //   this.client.login(token)
-
-          //   this.client.on('ready', () => {
-          //     this.requiredReLogin = false;
-          //     this.socket.toAll({
-          //       client:'host',
-          //       cmd:'need_relogin'
-          //     })
-          //     this.playYoutube()
-          //     //this.client.on('message', async message => this.host.onMessage(message));
-          //   });
-
-          // }else{
-            
-          // }
-          this.playYoutube();
-        }
+      if (this.songList.length > 0 && this.songList[0].type == "youtube") {
+        this.playYoutube();
       }
     }
 
-    /* Work on this */
     async playYoutube(){
-      const playYoutube = () => this.playYoutube()
-      
       const currentChannel = await this.client.channels.fetch(this.songList[0].voice)
 
       //This one just makes sure user is in voice channel
@@ -147,25 +127,12 @@ class Player {
         //subscribe to "audio player events"
         this.currentConnection.subscribe(this.audioPlayer)
 
-        /* TODO: everything from here needs to fix/change */
-        //fetch stream
-        const stream = ytdlCore(this.songList[0].url, { filter : 'audio', quality: 'highestaudio', highWaterMark: 1<<25 });
-          
-        //create "audio source"
-        const resource = createAudioResource(stream)
+        //play from the downloaded path
+        const resource = createAudioResource(this.songList[0].path)
 
         //play that resource
         this.audioPlayer.play(resource)
         this.currentSong = this.songList[0]
-                        
-        // let embed = {
-        //   fields: [
-        //     {
-        //       name: 'Now Playing:',
-        //       value: this.songList[0].details.title
-        //     }
-        //   ]
-        // };
 
         const embed = new EmbedBuilder()
           .addFields({
@@ -173,111 +140,138 @@ class Player {
             value: this.songList[0].details.title
           })
 
-        this.songList[0].channel.send({embeds: [embed]})
+        const res = await this.songList[0].channel.send({embeds: [embed]})
 
         this.audioPlayer.on('error', error => {
           console.log(error)
-          playYoutube();
+          this.playYoutube()
         })
+
+        return res
       }
-
-      // this.currentVoiceChannel.join().then(connection => {
-      //   const stream = ytdlCore(this.songList[0].url, { filter : 'audioonly', quality: 'highestaudio', highWaterMark: 1<<25 });
-      //   this.d = connection.play(stream, this.songList[0].option)
-        
-      //   connection.on('disconnect',()=>{
-      //     this.songList = []
-      //   })
-      //   this.d.on("finish", end=>this.songEnd())
-
-      //   this.currentSong = this.songList[0]
-
-      //   let embed = {
-      //     fields: [
-      //       {
-      //         name: 'Now Playing:',
-      //         value: this.songList[0].details.title
-      //       }
-      //     ]
-      //   };
-
-      //   this.songList[0].channel.send({"embed":embed})
-
-      // }, (err: any)=>{
-      //   console.log(err)
-      //   playYoutube();
-      // })
     }
 
     songEnd(){
-        console.log("song ended")
-        
+        //remove song before removing the song that was done
+        this.removeDownload()
+
         this.songList.shift()
+
         if (this.songList.length > 0){
             this.play()
             console.log('continue play');
-            
+        } else if (this.willLoop) {
+            console.log('loop');
+            this.songList = j2j(this.allSongList);
+            this.play()
         } else {
-            console.log('no more song');
-        
-            if (this.willLoop){
-                this.songList = j2j(this.allSongList);
-                this.play()
-            } else {
-              //console.log(this.currentVoiceChannel);
-              this.allSongList = [];
+          this.allSongList = [];
+          console.log('leaving here');
 
-              console.log('leaving here');
-
-              this.currentVoiceChannel.leave()            
-              this.currentVoiceChannel="";
-
-            }
+          if (this.currentConnection !== null){
+            this.currentConnection.disconnect()
+          }
+          
         }
+
+        //when a song ends, regardless, we check for pre-downloads since the array gets shifted anyway
+        this.toPreDownload();
     }
 
-    /* From... */
-    fromLink(int: any, url: string): Promise<MusicDetails[]> {
-      return ytdlCore.getInfo(url).then((info: ytdlCore.videoInfo) => {
-        let no: number = (info.videoDetails.thumbnail.thumbnails.length)-1
-        let sec: number = Number(info.videoDetails.lengthSeconds)
-        let minutes = Math.floor((sec/ 60)) + ""
-        let seconds = Math.floor((sec % 60)) + ""
+    removeDownload(){
+      if (!this.willLoop){
+        const finishedSongPath = this.songList[0].path;
 
-        int.channel.send("**Added:** " + info.videoDetails.title +
-        (
-          (this.songList.length!=0)?
-          ( " to position "+(this.songList.length)):"")
-        )
+        const fileExists = existsSync(finishedSongPath)
+        if (fileExists) {
+          rmSync(finishedSongPath);
+        }
+        
+        console.log(`removed ${finishedSongPath}`);
+      }
+    }
 
-        return [{
-          url,
-          option:{highWaterMark: 1},
-          type:"youtube",
-          details:{
-            title: info.videoDetails.title,
-            author: info.videoDetails.author,
-            thumbnail_url: info.videoDetails.thumbnail.thumbnails[no].url,
-            duration: minutes + ":" + seconds
-          },
-          member: int.member.displayName,
-          channel: int.channel,
-          voice: this.currentVoiceID,
-        }]
-      })
+    /* We added a field called hasDownloaded, therefore the only thing we will then have to check is if:
+    * a) the list is still bigger than 10 songs
+    * b) if the 10th song has yet to "pre-download" when it reaches its turn
+    */
+    toPreDownload(){
+      if (!(this.songList.length > 9)){
+        return
+      }
+
+      if (!this.songList[9].hasDownloaded){
+        const options = this.buildYtdlpOptions(this.songList[9].url, this.songList[9].path);
+
+        ytDlpWrap.exec(options).once('close', () => {
+          this.songList[9].hasDownloaded = true;
+        });
+      }
+    }
+
+    buildYtdlpOptions(url: string, path: string): any {
+      return [
+        url,
+        '-f',
+        'ba',
+        '-o',
+        path,
+      ]
+    }
+
+    /* This function triggers if a youtube link is used instead of searching by name
+        1. We create a path with any random id first and build the necessary options to download the video
+        2. We will fetch the video info + download the video into a mp4 file and wait for both to finish asynchronously
+        3. Once downloaded, we create a MusicDetails object with the necessary information and return it
+    */
+    async fromLink(int: any, url: string): Promise<MusicDetails[]> {
+      const path = `./tmp/${randomId()}.ogg`;
+      const options = this.buildYtdlpOptions(url, path);
+
+      //over here, we will control how many files we download in a list. if the list is more than 10, we stop "pre-downloading"
+      let downloadPromise: any = ytDlpWrap.execPromise(options)
+      let hasDownloaded: boolean = true
+      if (this.songList.length > 10) {
+        downloadPromise = Promise.resolve()
+        hasDownloaded = false
+      }
+      
+      const [musicInfo, music] = await Promise.allSettled([ytdlCore.getInfo(url), downloadPromise])
+      const info = musicInfo?.value;
+
+      let no: number = (info.videoDetails.thumbnail.thumbnails.length)-1
+      let sec: number = Number(info.videoDetails.lengthSeconds)
+      let minutes = Math.floor((sec/ 60)) + ""
+      let seconds = Math.floor((sec % 60)) + ""
+
+      int.channel.send("**Added:** " + info.videoDetails.title +
+      (
+        (this.songList.length!=0)?
+        ( " to position "+(this.songList.length)):"")
+      )
+
+      return [{
+        url,
+        path,
+        options,
+        hasDownloaded,
+        type: "youtube",
+        details:{
+          title: info.videoDetails.title,
+          author: info.videoDetails.author,
+          thumbnail_url: info.videoDetails.thumbnail.thumbnails[no].url,
+          duration: minutes + ":" + seconds
+        },
+        member: int.member.displayName,
+        channel: int.channel,
+        voice: this.currentVoiceID,
+      }]
     }
 
     async fromSearch(u,m,e){
       // assuming that user wants to search if no youtube url exists
       m.shift()
       let query = m.join(' ')
-
-      // let options = {
-      //     q: query,
-      //     part:'snippet',
-      //     type:'video',
-      //     maxResults: 1
-      // }
 
       let msg = await u.channel.send("Searching for the video...")
 
