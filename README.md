@@ -10,8 +10,7 @@ We want to be independent from youtube's api token, so we might remove that soon
 # How to use
 
 Setup a config.json file.
-```
-json
+```json
 {
     "TOKEN": "YOUR_BOT_TOKEN",
     "YOUTUBE_API_KEY": "YOUR_YOUTUBE_API_KEY",
@@ -25,11 +24,11 @@ Then run the bot with `bun run start`.
 Voila, you can now play music in your Discord server! 🎉
 
 # Commands
-- **play**: Plays a song from YouTube.
-  - Usage: `/play <song name>` or `/play <youtube link>`
+- **play**: Plays a song from YouTube (link only for now).
+  - Usage: `/play <youtube link>`
 
 # TODO
-- Basic player function like pause/resume, skip, repeat, etc.
+- Basic player function like search, pause/resume, skip, repeat, etc.
 - Further refactoring (i have a headache just from my own code even though i'm the one who wrote it)
 
 # Notes
