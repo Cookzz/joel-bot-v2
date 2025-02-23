@@ -113,6 +113,18 @@ class Player {
       }
     }
 
+    skip(int: ChatInputCommandInteraction<CacheType>){
+      if (this.songList.length === 0){
+        int.reply("No song to skip.")
+
+        return
+      } else {
+        int.reply("Skipping song.")
+      }
+
+      this.songEnd()
+    }
+
     async playYoutube(){
       const currentChannel = await this.client.channels.fetch(this.songList[0].voice)
 

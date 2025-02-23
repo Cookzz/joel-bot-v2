@@ -15,10 +15,10 @@ class Host {
         this.currentVoiceID = null
 
         this.commands = {
-            play: (int: any, url: string) => this.addMusic(int, url),
+            play: (int: any, url: any) => this.addMusic(int, url),
             // mv: (u,m,e)=>this.player.move(u,m,e),
             // rm: (u,m,e)=>this.player.remove(u,m,e),
-            // skip : (int: any, url: string) => this.player.skip(int),
+            skip : (int: any, url?: any) => this.player.skip(int),
             // se: (u,m,e)=>this.player.seek(u,m,e),
             // pa: (u,m,e)=>this.player.pause(u,m,e),
             // re: (u,m,e)=>this.player.resume(u,m,e),
@@ -31,11 +31,11 @@ class Host {
         }
     }
 
-    async onCommand(interaction: ChatInputCommandInteraction<CacheType>, command: string, url: string) {
+    async onCommand(interaction: ChatInputCommandInteraction<CacheType>, command: string) {
         // console.log("get interaction", interaction.member)
         // console.log("get command", command)
 
-        
+        const url = interaction.options.getString('url');
         
         await this.commands[command](interaction, url)
     }

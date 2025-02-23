@@ -12,8 +12,15 @@ const playMusic = {
         )
 }
 
+const skipMusic = {
+    ...new SlashCommandBuilder()
+        .setName("skip")
+        .setDescription("skip music")
+}
+
 const COMMANDS = [
-    playMusic
+    playMusic,
+    skipMusic
 ]
 
 export default COMMANDS;
