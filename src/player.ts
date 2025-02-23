@@ -10,8 +10,10 @@ import ytdlCore from '@distube/ytdl-core'
 import YTDlpWrap from 'yt-dlp-wrap';
 import { existsSync, rmSync } from 'node:fs'
 import { platform } from 'os';
+
 import { j2j, randomId } from './utils/common.util';
 import type { MusicDetails } from './types/music-details.type';
+import { YOUTUBE_REGEX } from './constant';
 
 const { YOUTUBE_API_KEY } = require('../config.json');
 const ytDlpWrap = new YTDlpWrap(`./binaries/yt-dlp${platform() === 'win32' ? '.exe' : ''}`);
@@ -88,19 +90,28 @@ class Player {
     //   this.toList(list, isPlaylist)
     // }
 
-    async add(int: ChatInputCommandInteraction<CacheType>, url: string){
+    async add(int: ChatInputCommandInteraction<CacheType>, text: string){
       let isPlaylist = false;
       let list = null;
-      
-      list = await this.fromLink(int, url)
+
+      if (text.includes("list=")){
+        int.reply("Playlist not supported yet.")
+
+        return
+      }
+
+      //This is necessary so theres no "The application did not respond" error
+      int.reply("Adding your music...")
+
+      if (text.match(YOUTUBE_REGEX)){
+        list = await this.fromLink(int, text)
+      } else {
+        //we will assume that its a search query
+        list = await this.fromSearch(int, text)
+      }
       
       this.songList = this.songList.concat(list)
       this.allSongList = this.allSongList.concat(list)
-
-      if (url.includes("list=")){
-        int.ephemeral = true
-        int.reply("Playlist not supported yet.")
-      }
 
       if (this.songList.length == 1 && !isPlaylist) {
           this.play()
@@ -231,6 +242,14 @@ class Player {
       ]
     }
 
+    buildYtdlpSearchOptions(text: string): any {
+      return [
+        '--skip-download',
+        'ytsearch1:' + text,
+        '--get-id'
+      ]
+    }
+
     /* This function triggers if a youtube link is used instead of searching by name
         1. We create a path with any random id first and build the necessary options to download the video
         2. We will fetch the video info + download the video into a mp4 file and wait for both to finish asynchronously
@@ -280,48 +299,29 @@ class Player {
       }]
     }
 
-    async fromSearch(u,m,e){
+    /* We use yt-dlp to search and get ONLY the youtube id then process it as if we're fetching it from a link 
+    * One downside is that because we're processing almost 3 promises, searching takes a long time..
+    */
+    async fromSearch(int: ChatInputCommandInteraction<CacheType>, text: string): Promise<MusicDetails[]> {
       // assuming that user wants to search if no youtube url exists
-      m.shift()
-      let query = m.join(' ')
+      let query = text.trim()
+      let searchOptions = this.buildYtdlpSearchOptions(query)
 
-      let msg = await u.channel.send("Searching for the video...")
+      let msg = await int.channel.send("Searching for the video...")
 
-      return youtube.getVideo(query).then((res)=>{
-          msg.delete({timeout:1000});
+      let searchId = await ytDlpWrap.execPromise(searchOptions)
 
-          const {
-              id,
-              snippet
-          } = res.data
+      msg.delete()
 
-          const { channelTitle, thumbnails, title } = snippet
+      if (searchId.trim() == "") {
+        await int.channel.send("Video not found! Please try again.")
 
-          u.channel.send("**Added:** " + title +
-          (
-              (this.songList.length!=0)?
-              ( " to position "+(this.songList.length)):"")
-          )
+        return []
+      }
 
-          return [{
-              url: 'https://www.youtube.com/watch?v='+id,
-              option:{},
-              type:"youtube",
-              details:{
-                  title: title,
-                  author: channelTitle,
-                  thumbnail_url: thumbnails.default.url,
-                  duration: '0:00'
-              },
-              member:u.member.displayName,
-              channel:u.channel,
-              guild:u.guild.id,
-              voice:this.currentVoiceID,
-          }]
-      }, (err)=>{
-          u.channel.send('Could not find the requested video.')
-          throw err
-      })
+      let videoUrl = `https://www.youtube.com/watch?v=${searchId}`
+
+      return await this.fromLink(int, videoUrl)
     }
     /* From... */
 }

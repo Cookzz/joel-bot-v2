@@ -4,7 +4,7 @@ export const j2j = (j: any) => {
 
 export const randomId = () => {
     //generate random alphanumeric id
-    const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&';
+    const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&';
     let id = '';
 
     for (let i = 0; i < 16; i++) {

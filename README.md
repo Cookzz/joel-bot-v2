@@ -34,4 +34,5 @@ Voila, you can now play music in your Discord server! 🎉
 - As of 22nd Feb, running on node v21.7.3 without any issues. Recommended node version but you can use any version you'd like, can't guarantee it works though.
 - Requires the `bun` package to run. Make sure you have it installed (https://bun.sh/).
 - You can leave binaries folder alone. In index.ts, we are downloading automatically to that folder for the required binaries, so if you want to use a different binary, just replace the ones in there with your own.
+- Leave tmp folder alone, its just used to store music temp files
 

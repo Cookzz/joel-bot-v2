@@ -6,8 +6,8 @@ const playMusic = {
         .setName("play")
         .setDescription("play music")
         .addStringOption(option =>
-            option.setName("url")
-                    .setDescription("youtube url")
+            option.setName("text")
+                    .setDescription("Search by name or add by URL")
                     .setRequired(true)
         )
 }

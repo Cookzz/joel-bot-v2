@@ -15,10 +15,10 @@ class Host {
         this.currentVoiceID = null
 
         this.commands = {
-            play: (int: any, url: any) => this.addMusic(int, url),
+            play: (int: any, text: any) => this.addMusic(int, text),
             // mv: (u,m,e)=>this.player.move(u,m,e),
             // rm: (u,m,e)=>this.player.remove(u,m,e),
-            skip : (int: any, url?: any) => this.player.skip(int),
+            skip : (int: any, text?: any) => this.player.skip(int),
             // se: (u,m,e)=>this.player.seek(u,m,e),
             // pa: (u,m,e)=>this.player.pause(u,m,e),
             // re: (u,m,e)=>this.player.resume(u,m,e),
@@ -35,14 +35,13 @@ class Host {
         // console.log("get interaction", interaction.member)
         // console.log("get command", command)
 
-        const url = interaction.options.getString('url');
+        const text = interaction.options.getString('text');
         
-        await this.commands[command](interaction, url)
+        await this.commands[command](interaction, text)
     }
 
-    async addMusic(int: ChatInputCommandInteraction<CacheType>, url: string){
+    async addMusic(int: ChatInputCommandInteraction<CacheType>, text: string){
         const voice = getVoiceChannel(int)
-        console.log('get voice', voice)
         if (this.currentVoiceID){
             if (this.currentVoiceID !== voice){
                 int.ephemeral = true
@@ -50,22 +49,18 @@ class Host {
             }
         }
 
-        if (voice) {
-            this.player.setVoiceId(voice)
-            this.currentVoiceID = voice
-
-            if (url){
-                await this.player.add(int, url)
-            }
-      
-        //   if(m.length>1){
-        //     // this.player.add(u,m,e)
-        //   }else{
-        //     int.reply("missing parameter")
-        //   }
-        } else {
-            await int.reply("fuck you bitch ah, not in channel also want pick song, cause so many bug")
+        if (!voice) {
+            int.reply("fuck you bitch ah, not in channel also want pick song, cause so many bug")
+            return
         }
+        if (!text){
+            int.reply("No input is provided")
+            return
+        }
+
+        this.player.setVoiceId(voice)
+        this.currentVoiceID = voice
+        await this.player.add(int, text)
     }
 }
 
