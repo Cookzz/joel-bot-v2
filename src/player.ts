@@ -5,6 +5,7 @@ import {
   VoiceConnection, 
   AudioPlayer,
   createAudioResource,
+  AudioPlayerStatus,
 } from '@discordjs/voice';
 import ytdlCore from '@distube/ytdl-core'
 import YTDlpWrap from 'yt-dlp-wrap';
@@ -15,15 +16,7 @@ import { j2j, randomId } from './utils/common.util';
 import type { MusicDetails } from './types/music-details.type';
 import { YOUTUBE_REGEX } from './constant';
 
-const { YOUTUBE_API_KEY } = require('../config.json');
 const ytDlpWrap = new YTDlpWrap(`./binaries/yt-dlp${platform() === 'win32' ? '.exe' : ''}`);
-
-const config = {
-  GOOGLE_API_KEY: YOUTUBE_API_KEY, // require
-  PLAYLIST_ITEM_KEY: ['videoUrl','title'], // option
-}
-const { YouTube } = require('popyt')
-const youtube = new YouTube(YOUTUBE_API_KEY)
 
 class Player {
     private readonly client;
@@ -35,7 +28,7 @@ class Player {
     private audioPlayer: AudioPlayer;
     private currentConnection: VoiceConnection | null;
     private currentVoiceID: any | null;
-    private interaction: ChatInputCommandInteraction<CacheType> | null;
+    private currentBotState: string;
 
     constructor(client: Client){
         this.client = client;
@@ -47,7 +40,7 @@ class Player {
         this.audioPlayer = createAudioPlayer()
         this.currentConnection = null
         this.currentVoiceID = ""
-        this.interaction = null;
+        this.currentBotState = "idle" //we assume its currently idle
 
         this.init()
     }
@@ -55,6 +48,8 @@ class Player {
     public init() {
       this.audioPlayer.addListener('stateChange', (oldState, newState)=>{
         console.log("check state", newState.status)
+
+        this.currentBotState = newState.status
         //here, when the audio player is in an idle state, we will just assume the music has ended
         if (newState.status === 'idle') {
           this.songEnd()
@@ -129,11 +124,35 @@ class Player {
         int.reply("No song to skip.")
 
         return
-      } else {
-        int.reply("Skipping song.")
       }
 
+      int.reply("Skipping song.")
+
       this.songEnd()
+    }
+    
+    pause(int: ChatInputCommandInteraction<CacheType>){
+      if (this.songList.length === 0){
+        int.reply("No song to pause.")
+        return
+      }
+      if (this.currentBotState === AudioPlayerStatus.Playing){
+        this.audioPlayer.pause()
+
+        int.reply("Paused song.")
+      }
+    }
+    
+    resume(int: ChatInputCommandInteraction<CacheType>){
+      if (this.songList.length === 0){
+        int.reply("No song to pause.")
+        return
+      }
+      if (this.currentBotState === AudioPlayerStatus.Paused){
+        this.audioPlayer.unpause()
+
+        int.reply("Paused song.")
+      }
     }
 
     async playYoutube(){

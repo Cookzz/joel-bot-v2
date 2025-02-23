@@ -4,7 +4,7 @@ import { SlashCommandBuilder } from "discord.js";
 const playMusic = {
     ...new SlashCommandBuilder()
         .setName("play")
-        .setDescription("play music")
+        .setDescription("Play music via searching or youtube url")
         .addStringOption(option =>
             option.setName("text")
                     .setDescription("Search by name or add by URL")
@@ -15,12 +15,26 @@ const playMusic = {
 const skipMusic = {
     ...new SlashCommandBuilder()
         .setName("skip")
-        .setDescription("skip music")
+        .setDescription("Skip music")
+}
+
+const pauseMusic = {
+    ...new SlashCommandBuilder()
+        .setName("pause")
+        .setDescription("Pause currently playing music")
+}
+
+const resumeMusic = {
+    ...new SlashCommandBuilder()
+        .setName("resume")
+        .setDescription("Resume currently paused music")
 }
 
 const COMMANDS = [
     playMusic,
-    skipMusic
+    skipMusic,
+    pauseMusic,
+    resumeMusic
 ]
 
 export default COMMANDS;
