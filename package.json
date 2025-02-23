@@ -21,11 +21,8 @@
     "ffmpeg": "^0.0.4",
     "ky": "^1.7.5",
     "libsodium-wrappers": "^0.7.15",
-    "popyt": "^7.1.1",
     "youtube-playlist-summary": "^2.1.6",
-    "yt-dlp-wrap": "^2.3.12",
-    "ytpl": "^2.3.0",
-    "ytsr": "^3.8.4"
+    "yt-dlp-wrap": "^2.3.12"
   },
   "trustedDependencies": [
     "es5-ext",

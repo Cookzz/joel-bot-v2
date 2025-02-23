@@ -5,24 +5,39 @@ import COMMANDS from './src/commands'
 import Host from './src/host';
 import YTDlpWrap from 'yt-dlp-wrap';
 import { platform } from 'os';
+import { readdirSync, unlinkSync } from 'node:fs'
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 
 const cmd = COMMANDS
 
+/* Download the required yt-dlp binary depending on the platform from github */
 try {
-  //Download the yt-dlp binary for the given version and platform to the provided path.
-  //By default the latest version will be downloaded to "./yt-dlp" and platform = os.platform().
+  console.log("Started downloading yt-dlp binary.")
+
   await YTDlpWrap.downloadFromGithub(
     `./binaries/yt-dlp${platform() === 'win32' ? '.exe' : ''}`, //Platform dependent
     undefined,
     platform()
   );
+
+  console.log("Finished downloading yt-dlp binary.")
 } catch (error) {
   console.error(error);
 }
 
+/* Clear tmp files */
+try {
+  console.log("Clearing tmp files")
 
+  readdirSync('./tmp').forEach(file => unlinkSync(`./tmp/${file}`));
+
+  console.log("Cleared tmp files")
+} catch (error) {
+  console.error(error);
+}
+
+/* Start registering slash commands */
 try {
   console.log('Started refreshing application (/) commands.');
 
