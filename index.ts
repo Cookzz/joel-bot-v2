@@ -24,11 +24,11 @@ try {
 
 
 try {
-	console.log('Started refreshing application (/) commands.');
+  console.log('Started refreshing application (/) commands.');
 
-	await rest.put(Routes.applicationCommands(CLIENT_ID), { body: cmd });
+  await rest.put(Routes.applicationCommands(CLIENT_ID), { body: cmd });
 
-	console.log('Successfully reloaded application (/) commands.');
+  console.log('Successfully reloaded application (/) commands.');
 } catch (error) {
 	console.error(error);
 }
@@ -52,12 +52,7 @@ client.on(Events.ClientReady, readyClient => {
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
-  const url = interaction.options.getString('url') ?? 'No url provided';
-
-  if (interaction.commandName === 'play') {
-    host.onCommand(interaction, interaction.commandName, url)
-  }
-
+  host.onCommand(interaction, interaction.commandName)
 });
 
 

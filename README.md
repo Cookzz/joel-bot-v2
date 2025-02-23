@@ -15,7 +15,6 @@ Setup a config.json file.
     "TOKEN": "YOUR_BOT_TOKEN",
     "YOUTUBE_API_KEY": "YOUR_YOUTUBE_API_KEY",
     "CLIENT_ID": "YOUR_BOT_CLIENT_ID"
-
 }
 ```
 
