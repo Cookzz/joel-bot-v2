@@ -6,6 +6,7 @@ import {
   AudioPlayer,
   createAudioResource,
   AudioPlayerStatus,
+  StreamType,
 } from '@discordjs/voice';
 import ytdlCore from '@distube/ytdl-core'
 import YTDlpWrap from 'yt-dlp-wrap';
@@ -170,7 +171,7 @@ class Player {
         this.currentConnection.subscribe(this.audioPlayer)
 
         //play from the downloaded path
-        const resource = createAudioResource(this.songList[0].path)
+        const resource = createAudioResource(this.songList[0].path, { inputType: StreamType.OggOpus })
 
         //play that resource
         this.audioPlayer.play(resource)

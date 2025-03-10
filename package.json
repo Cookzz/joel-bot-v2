@@ -1,9 +1,6 @@
 {
   "name": "joel-bot-v2",
   "module": "index.ts",
-  "type": "module",
-  "version": "0.1.0",
-  "description": "Joel Bot - originally a joke bot now became a functional one.",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "bun index.ts",
@@ -16,14 +13,13 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
-    "@discordjs/opus": "^0.9.0",
+    "@discordjs/opus": "^0.10.0",
     "@discordjs/voice": "^0.18.0",
     "@distube/ytdl-core": "^4.16.4",
     "discord.js": "^14.18.0",
     "ffmpeg": "^0.0.4",
     "ky": "^1.7.5",
     "libsodium-wrappers": "^0.7.15",
-    "youtube-playlist-summary": "^2.1.6",
     "yt-dlp-wrap": "^2.3.12"
   }
 }
