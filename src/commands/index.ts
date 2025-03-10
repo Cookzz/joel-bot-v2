@@ -1,6 +1,5 @@
 import { SlashCommandBuilder } from "discord.js";
 
-/* Play Music */
 const playMusic = {
     ...new SlashCommandBuilder()
         .setName("play")
@@ -30,11 +29,27 @@ const resumeMusic = {
         .setDescription("Resume currently paused music")
 }
 
+const nowPlaying = {
+    ...new SlashCommandBuilder()
+        .setName("np")
+        .setDescription("Get details of currently playing music")
+}
+
+const getQueue = {
+    ...new SlashCommandBuilder()
+        .setName("queue")
+        .setDescription("Get list of queued songs")
+}
+
+//TODO: see if its possible to simplify and not repeat SlashCommandBuilder()
+
 const COMMANDS = [
     playMusic,
     skipMusic,
     pauseMusic,
-    resumeMusic
+    resumeMusic,
+    nowPlaying,
+    getQueue
 ]
 
 export default COMMANDS;

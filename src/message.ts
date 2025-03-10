@@ -1,6 +1,7 @@
 import type { EmbeddedMessage } from "./types/embedded-message.type";
 import { j2j } from "./utils/common.util";
 
+//TODO: this is still old code, refactoring will be required soon
 class Message {
     public quoteList: any[];
     public titles: any[];

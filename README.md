@@ -23,11 +23,27 @@ Then run the bot with `bun run start`.
 Voila, you can now play music in your Discord server! 🎉
 
 # Commands
-- **play**: Plays a song from YouTube (link only for now).
-  - Usage: `/play <youtube link>`
+- **play**: Plays a song from YouTube (link and search supported, no playlist).
+  - Usage: `/play <youtube link or name>`
+- **skip**: Skip to the next song (if any).
+  - Usage: `/skip`
+- **pause**: Pause current song.
+  - Usage: `/pause`
+- **resume**: Resume currently paused song.
+  - Usage: `/resume`
 
+# Upcoming features
+- [ ] Support playlists
+- [ ] Move songs (for example, from position 5 to 2)
+- [ ] Remove songs from queue
+- [ ] Get details of currently playing song
+- [ ] Show queue list
+- [ ] Add loop feature
+- [ ] Leave voice call
+ 
 # TODO
 - Basic player function like search, pause/resume, skip, repeat, etc.
+- Implement worker threads (multi-threading) so that playlists can be processed independently
 - Further refactoring (i have a headache just from my own code even though i'm the one who wrote it)
 
 # Notes
