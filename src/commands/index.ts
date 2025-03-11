@@ -5,9 +5,10 @@ const playMusic = {
         .setName("play")
         .setDescription("Play music via searching or youtube url")
         .addStringOption(option =>
-            option.setName("text")
-                    .setDescription("Search by name or add by URL")
-                    .setRequired(true)
+            option
+                .setName("text")
+                .setDescription("Search by name or add by URL")
+                .setRequired(true)
         )
 }
 
@@ -32,7 +33,13 @@ const resumeMusic = {
 const nowPlaying = {
     ...new SlashCommandBuilder()
         .setName("np")
-        .setDescription("Get details of currently playing music")
+        .setDescription("Get details of a song")
+        .addStringOption(option => 
+            option
+                .setName("text")
+                .setDescription("Song no. in queue or current song (if no number is used")
+                .setRequired(false)
+        )
 }
 
 const getQueue = {

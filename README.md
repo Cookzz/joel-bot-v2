@@ -31,12 +31,14 @@ Voila, you can now play music in your Discord server! 🎉
   - Usage: `/pause`
 - **resume**: Resume currently paused song.
   - Usage: `/resume`
+- **np**: Get currently playing song or any of the selected queued songs.
+  - Usage: `/np <number>`
 
 # Upcoming features
 - [ ] Support playlists
 - [ ] Move songs (for example, from position 5 to 2)
 - [ ] Remove songs from queue
-- [ ] Get details of currently playing song
+- [X] Get details of currently playing song
 - [ ] Show queue list
 - [ ] Add loop feature
 - [ ] Leave voice call

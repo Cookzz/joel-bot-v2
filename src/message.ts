@@ -1,14 +1,22 @@
+import { Embed, EmbedBuilder, type APIEmbedField } from 'discord.js'
 import type { EmbeddedMessage } from "./types/embedded-message.type";
+import type { MusicDetails } from "./types/music-details.type";
 import { j2j } from "./utils/common.util";
+
+const quoteList = [
+  "Why lah bro",
+  "ER Diagram is my life",
+  "Love, Joel Mathew",
+  "Hi. I am Joel.",
+  "Invaded by ERDark spirit Joel Mathew"
+];
 
 //TODO: this is still old code, refactoring will be required soon
 class Message {
-    public quoteList: any[];
     public titles: any[];
     public messages: any[];
 
     constructor(){
-        this.quoteList = []
         this.titles = []
         this.messages = []
     }
@@ -16,7 +24,6 @@ class Message {
     public queueList(client: any, list: any[], p: number, q: any[]){
         this.titles = []
         this.messages = []
-        this.quoteList = q
         
         const pageSize = 10
 
@@ -74,41 +81,41 @@ class Message {
         }
     }
 
-    public getSongInfo(songInfo: any, q: any[]){
-        this.quoteList = q
-        this.titles = []
-        this.messages = []
+    public getSongInfo(songInfo: MusicDetails): EmbedBuilder{
+      const j = "Joel Bot"
+      const quoteNo = Math.floor((Math.random() * quoteList.length))
+      const q = quoteList[quoteNo]
+      const thumbnailUrl = songInfo?.details?.thumbnail_url ?? null
 
-        this.titles.push("Title:")
-        this.messages.push("["+songInfo.details.title+"]("+songInfo.url+")")
-        if(songInfo.details.author){
-          this.titles.push("Author:")
-          this.messages.push(songInfo.details.author)
-  
-          this.titles.push("Video Duration:")
-          this.messages.push(songInfo.details.duration)
-  
-          this.titles.push("Requested By:")
-          this.messages.push(songInfo.member)
-        }else{
-          this.titles.push("Other Detail still loading!")
-          this.messages.push('try again later')
-        }
-        
+      const fields: APIEmbedField[] = [
+        { name: "Author: ", value: songInfo.details.author.name, inline: false },
+        { name: "Video Duration: ", value: songInfo.details.duration, inline: false },
+        { name: "Requested By: ", value: songInfo.member, inline: false }
+      ]
 
-        let embedded = this.embedMessage(false,(songInfo.details.thumbnail_url)?songInfo.details.thumbnail_url:false)
+      let embedded = new EmbedBuilder()
+                          .setAuthor({ name: `${j} - ${q}`})
+                          .setTitle(`${songInfo.details.title}`)
+                          .setURL(songInfo.url)
+                          .setColor(6910463)
+                          .addFields(fields)
+      
+      if (thumbnailUrl){
+        embedded.setImage(thumbnailUrl)
+      }
 
-        return embedded
+      return embedded
     }
 
+    //this is no longer necessary, soon to deprecate
     public embedMessage(f: any, tn: any){
         let emojiName: any[] = [];
 
         let no = Math.floor((Math.random() * emojiName.length))
         let j = emojiName[no] || "Joel Bot"
 
-        let quoteNo = Math.floor((Math.random() * this.quoteList.length))
-        let q = this.quoteList[quoteNo]
+        let quoteNo = Math.floor((Math.random() * quoteList.length))
+        let q = quoteList[quoteNo]
 
         let embeddedMsg: EmbeddedMessage = {
             "title": `${j} - ${q}`,

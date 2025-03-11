@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, Client, type CacheType, type Interaction } from 'discord.js';
+import { ChatInputCommandInteraction, Client, type CacheType } from 'discord.js';
 import Player from './player';
 import { getVoiceChannel } from './utils/host.util';
 import type { Commands } from './types/command.type';
@@ -23,7 +23,7 @@ class Host {
             pause: (int: any, text?: any) => this.player.pause(int),
             resume: (int: any, text?: any) => this.player.resume(int),
             // l : (u,m,e)=>this.player.leave(u,m,e),
-            // np: (u,m,e)=>this.player.checkSong(u,m,e, this.quoteList),
+            np: (int: any, text?: any)=>this.player.checkSong(int, text),
             // q : (u,m,e)=>this.player.getQueue(u,m,e, this.quoteList),
             //     loop: (u,m,e)=>this.player.loop(u,m,e),
             // idof: (u,m,e)=>this.getId(u,m,e),

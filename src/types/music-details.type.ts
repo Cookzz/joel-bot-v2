@@ -14,7 +14,12 @@ export interface MusicDetails {
 
 interface AdditionalDetails {
     title: string,
-    author: any,
+    author: AuthorDetails,
     thumbnail_url: string,
     duration: string
+}
+
+interface AuthorDetails {
+    name: string,
+    channel_url: string
 }

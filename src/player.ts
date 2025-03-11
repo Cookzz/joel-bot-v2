@@ -12,6 +12,7 @@ import ytdlCore from '@distube/ytdl-core'
 import YTDlpWrap from 'yt-dlp-wrap';
 import { existsSync, rmSync } from 'node:fs'
 import { platform } from 'os';
+import Message from './message'
 
 import { j2j, randomId } from './utils/common.util';
 import type { MusicDetails } from './types/music-details.type';
@@ -21,6 +22,7 @@ const ytDlpWrap = new YTDlpWrap(`./binaries/yt-dlp${platform() === 'win32' ? '.e
 
 class Player {
     private readonly client;
+    private readonly message;
     private songList: MusicDetails[]; //"current" list
     private allSongList: MusicDetails[]; //we store it separately in case the user wants to loop the whole list again
     private d: any;
@@ -33,6 +35,7 @@ class Player {
 
     constructor(client: Client){
         this.client = client;
+        this.message = new Message()
         this.songList = [];
         this.allSongList = [];
         this.d;
@@ -156,6 +159,34 @@ class Player {
       }
     }
 
+    checkSong(int: ChatInputCommandInteraction<CacheType>, text: string){
+      const reg = new RegExp('^[0-9]*$')
+
+      if (this.songList.length === 0){
+        int.reply("There is no song available to view.")
+        return
+      }
+
+      if (text === undefined || text === null || text === ""){
+        text = "0" //set to zero by default if user didn't provide anything
+      }
+
+      if (!reg.test(text)){
+        int.reply("Not a valid input. Must be number only.")
+        return
+      }
+
+      const songNo = parseInt(text)
+      if (songNo > this.songList.length){
+        int.reply("Song does not exist.")
+        return
+      }
+
+      const embed: EmbedBuilder = this.message.getSongInfo(this.songList[songNo])
+
+      int.reply({ embeds: [embed] })
+    }
+
     async playYoutube(){
       const currentChannel = await this.client.channels.fetch(this.songList[0].voice)
 
@@ -178,10 +209,10 @@ class Player {
         this.currentSong = this.songList[0]
 
         const embed = new EmbedBuilder()
-          .addFields({
+          .addFields([{
             name: "Now Playing:",
             value: this.songList[0].details.title
-          })
+          }])
 
         const res = await this.songList[0].channel.send({embeds: [embed]})
 
@@ -295,7 +326,7 @@ class Player {
       let minutes = Math.floor((sec/ 60)) + ""
       let seconds = Math.floor((sec % 60)) + ""
 
-      int.channel.send("**Added:** " + info.videoDetails.title +
+      int.channel.send(`**Added:** ${info.videoDetails.title}` +
       (
         (this.songList.length!=0)?
         ( " to position "+(this.songList.length)):"")
