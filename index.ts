@@ -1,11 +1,11 @@
-import { Client, Collection, Events, GatewayIntentBits, REST, Routes } from 'discord.js';
+import { Client, Events, GatewayIntentBits, REST, Routes } from 'discord.js';
 
 import { TOKEN, CLIENT_ID } from './config.json'
 import COMMANDS from './src/commands'
 import Host from './src/host';
 import YTDlpWrap from 'yt-dlp-wrap';
 import { platform } from 'os';
-import { readdirSync, unlinkSync } from 'node:fs'
+import { readdirSync, unlinkSync, existsSync } from 'node:fs'
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 
@@ -15,18 +15,25 @@ const cmd = COMMANDS
 try {
   console.log("Started downloading yt-dlp binary.")
 
-  await YTDlpWrap.downloadFromGithub(
-    `./binaries/yt-dlp${platform() === 'win32' ? '.exe' : ''}`, //Platform dependent
-    undefined,
-    platform()
-  );
+  const binaryPath = `./binaries/yt-dlp${platform() === 'win32' ? '.exe' : ''}`
+  const hasBinary = existsSync(binaryPath)
 
-  console.log("Finished downloading yt-dlp binary.")
+  if (!hasBinary) {
+    await YTDlpWrap.downloadFromGithub(
+      binaryPath, //Platform dependent
+      undefined,
+      platform()
+    );
+  
+    console.log("Finished downloading yt-dlp binary.")
+  } else {
+    console.log("Binary already exists")
+  }
 } catch (error) {
   console.error(error);
 }
 
-/* Clear tmp files */
+/* Auto-clear tmp files */
 try {
   console.log("Clearing tmp files")
 
