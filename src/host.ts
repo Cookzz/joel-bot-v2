@@ -7,12 +7,10 @@ class Host {
     private readonly client: Client
     private readonly player: Player
     private readonly commands: Commands 
-    private currentVoiceID: string | null
 
     constructor(client: Client) {
         this.client = client
         this.player = new Player(client)
-        this.currentVoiceID = null
 
         this.commands = {
             play: (int: any, text: any) => this.addMusic(int, text),
@@ -42,8 +40,9 @@ class Host {
 
     async addMusic(int: ChatInputCommandInteraction<CacheType>, text: string){
         const voice = getVoiceChannel(int)
-        if (this.currentVoiceID){
-            if (this.currentVoiceID !== voice){
+        const currentVoiceId = this.player.getVoiceId()
+        if (currentVoiceId){
+            if (currentVoiceId !== voice){
                 int.ephemeral = true
                 int.reply("Not in the same voice channel as the bot")
             }
@@ -59,7 +58,6 @@ class Host {
         }
 
         this.player.setVoiceId(voice)
-        this.currentVoiceID = voice
         await this.player.add(int, text)
     }
 }

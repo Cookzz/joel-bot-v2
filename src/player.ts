@@ -7,6 +7,7 @@ import {
   createAudioResource,
   AudioPlayerStatus,
   StreamType,
+  VoiceConnectionStatus
 } from '@discordjs/voice';
 import ytdlCore from '@distube/ytdl-core'
 import YTDlpWrap from 'yt-dlp-wrap';
@@ -43,13 +44,13 @@ class Player {
         this.currentSong;
         this.audioPlayer = createAudioPlayer()
         this.currentConnection = null
-        this.currentVoiceID = ""
+        this.currentVoiceID = null
         this.currentBotState = "idle" //we assume its currently idle
 
         this.init()
     }
 
-    public init() {
+    private init(){
       this.audioPlayer.addListener('stateChange', (oldState, newState)=>{
         console.log("check state", newState.status)
 
@@ -61,8 +62,26 @@ class Player {
       })
     }
 
+    private initListeners(){
+      this.audioPlayer.on('error', error => {
+        console.log(error)
+        this.playYoutube()
+      })
+
+      if (this.currentConnection){
+        this.currentConnection.on(VoiceConnectionStatus.Disconnected, (oldState, newState) => {
+          this.setVoiceId(null)
+          this.currentConnection?.destroy()
+        })
+      }
+    }
+
     public setVoiceId(id: any){
       this.currentVoiceID = id
+    }
+
+    public getVoiceId(): any{
+      return this.currentVoiceID
     }
 
     // async add(u,m,e){
@@ -216,10 +235,7 @@ class Player {
 
         const res = await this.songList[0].channel.send({embeds: [embed]})
 
-        this.audioPlayer.on('error', error => {
-          console.log(error)
-          this.playYoutube()
-        })
+        this.initListeners()
 
         return res
       }
