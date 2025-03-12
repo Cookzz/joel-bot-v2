@@ -46,6 +46,12 @@ const getQueue = {
     ...new SlashCommandBuilder()
         .setName("queue")
         .setDescription("Get list of queued songs")
+        .addStringOption(option => 
+            option
+                .setName("text")
+                .setDescription("Page no. (if any), get first page if not provided")
+                .setRequired(false)
+        )
 }
 
 //TODO: see if its possible to simplify and not repeat SlashCommandBuilder()

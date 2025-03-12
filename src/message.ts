@@ -1,7 +1,7 @@
-import { Embed, EmbedBuilder, type APIEmbedField } from 'discord.js'
+import { Embed, EmbedBuilder, type APIEmbedField, type APIEmbedFooter } from 'discord.js'
 import type { EmbeddedMessage } from "./types/embedded-message.type";
 import type { MusicDetails } from "./types/music-details.type";
-import { j2j } from "./utils/common.util";
+import { getDuration, j2j } from "./utils/common.util";
 
 const quoteList = [
   "Why lah bro",
@@ -11,74 +11,58 @@ const quoteList = [
   "Invaded by ERDark spirit Joel Mathew"
 ];
 
-//TODO: this is still old code, refactoring will be required soon
 class Message {
-    public titles: any[];
-    public messages: any[];
+    public getQueueList(list: MusicDetails[], pageNo: number): EmbedBuilder{
+      const j = "Joel Bot"
+      const quoteNo = Math.floor((Math.random() * quoteList.length))
+      const q = quoteList[quoteNo]
 
-    constructor(){
-        this.titles = []
-        this.messages = []
-    }
+      const pageSize = 10
+      const maxPage = Math.ceil(list.length / pageSize);
 
-    public queueList(client: any, list: any[], p: number, q: any[]){
-        this.titles = []
-        this.messages = []
+      const durationList = list.map((song)=>(song.details.duration))
+      const duration = getDuration(durationList)
+
+      const currentSong = `${list[0].details.title}\n**Requested By:** ${list[0].member}`
+
+      const fields: APIEmbedField[] = [{
+        name: "Currently Playing:",
+        value: currentSong
+      }]
+
+      const footer: APIEmbedFooter = {
+        text: `Page ${pageNo}/${maxPage}. Duration: ${duration}`
+      }
+
+      if (list.length > 1){
+        // calculate total items we need to "see" within a page -> calculate numbering each item per page -> map accordingly
+        const pageStartItem = (pageNo > 1) ? pageNo * pageSize : pageNo
+        const pageEndItem = (pageNo > 1) ? (pageNo+1) * pageSize : pageNo * pageSize
+        const pageItem = (pageNo > 1) ? (pageNo-1) * pageSize : pageNo
         
-        const pageSize = 10
+        const songList = list.slice(pageStartItem, pageEndItem)
+                            .map((song: MusicDetails, i: number) => (`**${(pageItem)+i}**. ${song.details.title}\n`))
+                            .join("")
+        
+        fields.push({
+          name: "Next:",
+          value: songList
+        })
+      } else {
+        fields.push({
+          name: "Next:",
+          value: "No songs are in queue at the moment"
+        })
+      }
 
-        let maxPage=Math.ceil(list.length/pageSize);
-
-        if(
-          ((p+1)>maxPage) ||
-          (p<0))
-        {
-
-          return "No such page exist."
-
-        } else {
-          let songPages = ""
-          let embeddedMsg = {}
-
-          if (list.length > 0){
-              let currentSong = list[0].details.title + "\n**Requested By:** " + list[0].member
-              //console.log("song list ", list)
-              if (list.length > 1){
-                  let i=0;
-                  j2j(list).slice(p*pageSize,(p+1)*pageSize).forEach((s: any)=>{
-                    if(i>0){
-                      songPages+=("**" + (p*pageSize+i) + "**. ") + (s.details.title + "\n")
-                    }
-                    i++
-                  })
-              } else {
-                  songPages="No songs are in queue at the moment"
-              }
-
-              this.titles.push("Currently Playing:")
-              this.messages.push(currentSong)
-
-              this.titles.push("Next:")
-              this.messages.push(songPages)
-
-              console.log("embedding..")
-
-              //get embedded from embedMessage()
-              embeddedMsg = this.embedMessage(client,(list.length > 1)?{
-                "text":"page "+(p+1)+" of "+Math.ceil(list.length/pageSize)
-              }:false)
-          } else {
-              embeddedMsg = {
-                  "color": 16711680,
-                  fields: [{
-                      "name": "N/A",
-                      "value": "No songs are playing at the moment"
-                  }]
-              }
-          }
-
-          return embeddedMsg
-        }
+      let embedded = new EmbedBuilder()
+                          .setAuthor({ name: `${j} - ${q}`})
+                          .setColor(6910463)
+                          .addFields(fields)
+                          .setFooter(footer)
+                          .setThumbnail("https://i36.servimg.com/u/f36/20/47/49/21/jbday10.png")
+        
+      return embedded;
     }
 
     public getSongInfo(songInfo: MusicDetails): EmbedBuilder{
@@ -105,42 +89,6 @@ class Message {
       }
 
       return embedded
-    }
-
-    //this is no longer necessary, soon to deprecate
-    public embedMessage(f: any, tn: any){
-        let emojiName: any[] = [];
-
-        let no = Math.floor((Math.random() * emojiName.length))
-        let j = emojiName[no] || "Joel Bot"
-
-        let quoteNo = Math.floor((Math.random() * quoteList.length))
-        let q = quoteList[quoteNo]
-
-        let embeddedMsg: EmbeddedMessage = {
-            "title": `${j} - ${q}`,
-            "color": 6910463,
-            fields: []
-        }
-
-        for (var i=0; i < this.titles.length; i++){
-            embeddedMsg.fields.push({
-                "name": this.titles[i],
-                "value": this.messages[i]
-            })
-        }
-
-        if(f){
-          embeddedMsg.footer=f
-        }
-
-        if (tn){
-            embeddedMsg.image = {
-                "url": tn
-            }
-        }
-
-        return {"embed":embeddedMsg}
     }
 }
 

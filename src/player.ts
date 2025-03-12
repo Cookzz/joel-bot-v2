@@ -178,6 +178,41 @@ class Player {
       }
     }
 
+    getQueue(int: ChatInputCommandInteraction<CacheType>, text: string){
+      const pageSize = 10
+      const reg = new RegExp('^[0-9]*$')
+
+      if (this.songList.length === 0){
+        int.reply("No songs are playing at the moment.")
+        return
+      }
+
+      //do not allow page zero
+      if (text === undefined || text === null || text === ""){
+        text = "1" //set to page one by default
+      }
+
+      if (!reg.test(text)){
+        int.reply("Not a valid input. Must be number only.")
+        return
+      }
+
+      const maxPage = Math.ceil(this.songList.length / pageSize);
+      const pageNo = parseInt(text)
+
+      if (pageNo > maxPage){
+        int.reply("Exceeds the available total pages")
+        return
+      }
+      if (pageNo === 0){
+        int.reply("There is no page 0")
+        return
+      }
+
+      const embed: EmbedBuilder = this.message.getQueueList(this.songList, pageNo)
+      int.reply({ embeds: [embed] })
+    }
+
     checkSong(int: ChatInputCommandInteraction<CacheType>, text: string){
       const reg = new RegExp('^[0-9]*$')
 
