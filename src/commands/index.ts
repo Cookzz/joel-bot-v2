@@ -30,6 +30,24 @@ const resumeMusic = {
         .setDescription("Resume currently paused music")
 }
 
+const moveMusic = {
+    ...new SlashCommandBuilder()
+        .setName("remove")
+        .setDescription("Remove music from queue")
+        .addNumberOption(option => 
+            option
+                .setName("text")
+                .setDescription("Song no. to move")
+                .setRequired(true)
+        )
+        .addNumberOption(option => 
+            option
+                .setName("text2")
+                .setDescription("Position to move to")
+                .setRequired(true)
+        )
+}
+
 const removeMusic = {
     ...new SlashCommandBuilder()
         .setName("remove")
@@ -73,6 +91,7 @@ const COMMANDS = [
     skipMusic,
     pauseMusic,
     resumeMusic,
+    moveMusic,
     removeMusic,
     nowPlaying,
     getQueue

@@ -35,11 +35,15 @@ Voila, you can now play music in your Discord server! 🎉
   - Usage: `/np <song number>`
 - **queue**: Get currently playing song or any of the selected queued songs.
   - Usage: `/queue <page number>`
+- **remove**: Get currently playing song or any of the selected queued songs.
+  - Usage: `/remove <song no.>`
+- **move**: Get currently playing song or any of the selected queued songs.
+  - Usage: `/queue <song no.> <to position>`
 
 # Upcoming features
 - [ ] Support playlists
-- [ ] Move songs (for example, from position 5 to 2)
-- [ ] Remove songs from queue
+- [X] Move songs (for example, from position 5 to 2)
+- [X] Remove songs from queue
 - [X] Get details of currently playing song
 - [X] Show queue list
 - [ ] Add loop feature

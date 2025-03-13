@@ -28,7 +28,6 @@ class Player {
     private allSongList: MusicDetails[]; //we store it separately in case the user wants to loop the whole list again
     private d: any;
     private willLoop: boolean;
-    private currentSong: any;
     private audioPlayer: AudioPlayer;
     private currentConnection: VoiceConnection | null;
     private currentVoiceID: any | null;
@@ -176,6 +175,34 @@ class Player {
 
         int.reply("Paused song.")
       }
+    }
+
+    //because 2 fields are required, we will assume there will always be 2 fields
+    move(int: ChatInputCommandInteraction<CacheType>, text: string){
+      const fromToList = text.split(',')
+
+      const fromPosition = parseInt(fromToList[0])
+      const toPosition = parseInt(fromToList[1])
+
+      if (
+        (fromPosition < 1 && fromPosition > this.songList.length) ||
+        (toPosition < 1 && toPosition > this.songList.length)
+      ){
+        int.reply("Invalid position")
+        return
+      }
+
+      const songDetails = this.songList[fromPosition]
+
+      let itemRemoved = this.songList.splice(fromPosition, 1) // assign the removed item as an array
+      this.songList.splice(toPosition, 0, itemRemoved[0]) // insert itemRemoved into the target index
+
+      const allFromPosition = fromPosition + (this.allSongList.length - this.songList.length)
+      const allToPosition = toPosition + (this.allSongList.length - this.songList.length)
+
+      this.allSongList.splice(allToPosition, 0, this.songList.splice(allFromPosition, 1)[0])
+
+      int.reply(`Moved ${songDetails.details.title} to position ${toPosition}`)
     }
 
     remove(int: ChatInputCommandInteraction<CacheType>, text: string){

@@ -14,7 +14,7 @@ class Host {
 
         this.commands = {
             play: (int: any, text: any) => this.addMusic(int, text),
-            // mv: (u,m,e)=>this.player.move(u,m,e),
+            move: (int: any, text: any)=>this.player.move(int, text),
             remove: (int: any, text: any)=>this.player.remove(int, text),
             skip : (int: any, text?: any) => this.player.skip(int),
             // se: (u,m,e)=>this.player.seek(u,m,e),
@@ -29,11 +29,21 @@ class Host {
         }
     }
 
+    /*
+        we are using generic names like "text" in order to make value fetching universal among all the commands
+        so if its a number, we also go through the hassle of validating via regex and parsing it into a number value
+        it can be improved in the future by chaining ??, so get string -> get number -> null
+    */
     async onCommand(interaction: ChatInputCommandInteraction<CacheType>, command: string) {
-        // console.log("get interaction", interaction.member)
-        // console.log("get command", command)
+        let text = interaction.options.getString('text') ?? 
+                   String(interaction.options.getNumber('number')) ?? '';
+        let secondaryText = interaction.options.getString('text2') ?? 
+                            String(interaction.options.getNumber('number2')) ?? null;
 
-        const text = interaction.options.getString('text');
+        //have "optional" secondary option, we try to not use more than 2 options
+        if (secondaryText){
+            text += `,${secondaryText}`
+        }
         
         await this.commands[command](interaction, text)
     }
