@@ -178,6 +178,37 @@ class Player {
       }
     }
 
+    remove(int: ChatInputCommandInteraction<CacheType>, text: string){
+      const reg = new RegExp('^[0-9]*$')
+
+      if (this.songList.length === 0){
+        int.reply("No songs to remove.")
+        return
+      }
+
+      if (!reg.test(text)){
+        int.reply("Not a valid input. Must be number only.")
+        return
+      }
+
+      const songNo = parseInt(text)
+
+      if (songNo === 0){
+        this.skip(int)
+        return
+      }
+      if (songNo < 0 || songNo > this.songList.length){
+        int.reply("That song doesn't exist to be removed.")
+        return
+      }
+
+      const removedSong = this.songList[songNo]
+
+      this.songList.splice(songNo, 1)
+
+      int.reply(`Removed: ${removedSong.details.title}`)
+    }
+
     getQueue(int: ChatInputCommandInteraction<CacheType>, text: string){
       const pageSize = 10
       const reg = new RegExp('^[0-9]*$')
@@ -283,12 +314,12 @@ class Player {
         this.songList.shift()
 
         if (this.songList.length > 0){
-            this.play()
-            console.log('continue play');
+          this.play()
+          console.log('continue play');
         } else if (this.willLoop) {
-            console.log('loop');
-            this.songList = j2j(this.allSongList);
-            this.play()
+          console.log('loop');
+          this.songList = j2j(this.allSongList);
+          this.play()
         } else {
           this.allSongList = [];
           console.log('leaving here');
@@ -296,7 +327,6 @@ class Player {
           if (this.currentConnection !== null){
             this.currentConnection.disconnect()
           }
-          
         }
 
         //when a song ends, regardless, we check for pre-downloads since the array gets shifted anyway
