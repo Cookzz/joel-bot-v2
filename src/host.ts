@@ -15,7 +15,7 @@ class Host {
         this.commands = {
             play: (int: any, text: any) => this.addMusic(int, text),
             // mv: (u,m,e)=>this.player.move(u,m,e),
-            // rm: (u,m,e)=>this.player.remove(u,m,e),
+            remove: (int: any, text: any)=>this.player.remove(int, text),
             skip : (int: any, text?: any) => this.player.skip(int),
             // se: (u,m,e)=>this.player.seek(u,m,e),
             pause: (int: any, text?: any) => this.player.pause(int),
