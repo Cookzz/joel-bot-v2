@@ -118,7 +118,7 @@ class Player {
       }
 
       //This is necessary so theres no "The application did not respond" error
-      int.reply("Adding your music...")
+      const addingMsg = await int.reply("Adding your music...")
 
       if (text.match(YOUTUBE_REGEX)){
         list = await this.fromLink(int, text)
@@ -129,6 +129,8 @@ class Player {
       
       this.songList = this.songList.concat(list)
       this.allSongList = this.allSongList.concat(list)
+
+      addingMsg.delete()
 
       if (this.songList.length == 1 && !isPlaylist) {
           this.play()
