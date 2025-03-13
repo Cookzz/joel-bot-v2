@@ -203,6 +203,7 @@ class Player {
       }
 
       const removedSong = this.songList[songNo]
+      this.removeDownload(songNo)
 
       this.songList.splice(songNo, 1)
 
@@ -333,9 +334,11 @@ class Player {
         this.toPreDownload();
     }
 
-    removeDownload(){
+    removeDownload(no?: number){
+      const songNo = no ?? 0
+
       if (!this.willLoop){
-        const finishedSongPath = this.songList[0].path;
+        const finishedSongPath = this.songList[songNo].path;
 
         const fileExists = existsSync(finishedSongPath)
         if (fileExists) {
@@ -343,6 +346,10 @@ class Player {
         }
         
         console.log(`removed ${finishedSongPath}`);
+
+        if (no !== undefined && no < 10){
+          this.toPreDownload()
+        }
       }
     }
 
