@@ -26,7 +26,7 @@ class Player {
     private readonly message;
     private songList: MusicDetails[]; //"current" list
     private allSongList: MusicDetails[]; //we store it separately in case the user wants to loop the whole list again
-    private d: any;
+    private loopQueueCount: number;
     private willLoop: boolean;
     private audioPlayer: AudioPlayer;
     private currentConnection: VoiceConnection | null;
@@ -38,9 +38,8 @@ class Player {
         this.message = new Message()
         this.songList = [];
         this.allSongList = [];
-        this.d;
+        this.loopQueueCount = 0;
         this.willLoop = false;
-        this.currentSong;
         this.audioPlayer = createAudioPlayer()
         this.currentConnection = null
         this.currentVoiceID = null
@@ -321,7 +320,6 @@ class Player {
 
         //play that resource
         this.audioPlayer.play(resource)
-        this.currentSong = this.songList[0]
 
         const embed = new EmbedBuilder()
           .addFields([{
