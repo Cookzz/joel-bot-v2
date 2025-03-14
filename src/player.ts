@@ -82,30 +82,6 @@ class Player {
       return this.currentVoiceID
     }
 
-    // async add(u,m,e){
-    //   let isPlaylist = false;
-    //   let list = null;
-
-    //   let voice = (this.currentVoiceChannel=="") ? u.member.voice.channel.id:this.currentVoiceID
-    //   this.currentVoiceID = voice
-
-    //   if (m[1].includes("www.youtube.com")){
-    //       if (m[1].includes("list=")){
-    //           list = await this.fromPlaylist(u,m,e)
-    //           if (list.length > 0){
-    //               u.channel.send('Successfully added playlist')
-    //           }
-    //           isPlaylist = true;
-    //       } else {
-    //           list = await this.fromLink(u,m,e)
-    //       }
-    //   } else {
-    //       list = await this.fromSearch(u,m,e)
-    //   }
-
-    //   this.toList(list, isPlaylist)
-    // }
-
     async add(int: ChatInputCommandInteraction<CacheType>, text: string){
       let isPlaylist = false;
       let list = null;
@@ -185,6 +161,7 @@ class Player {
       const fromPosition = parseInt(fromToList[0])
       const toPosition = parseInt(fromToList[1])
 
+      //position 0 is the currently playing song, we dont allow it to get replaced
       if (
         (fromPosition < 1 && fromPosition > this.songList.length) ||
         (toPosition < 1 && toPosition > this.songList.length)

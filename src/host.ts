@@ -30,9 +30,9 @@ class Host {
     }
 
     /*
-        we are using generic names like "text" in order to make value fetching universal among all the commands
-        so if its a number, we also go through the hassle of validating via regex and parsing it into a number value
-        it can be improved in the future by chaining ??, so get string -> get number -> null
+        we are using generic names like "text"and "number"
+        in order to make value fetching universal among all the commands
+        we also stringify number into a string in order to take advantage of discord side validation
     */
     async onCommand(interaction: ChatInputCommandInteraction<CacheType>, command: string) {
         let text = interaction.options.getString('text') ?? 
