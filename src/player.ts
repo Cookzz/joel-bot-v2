@@ -248,6 +248,11 @@ class Player {
       int.reply({ embeds: [embed] })
     }
 
+    getHelp(int: ChatInputCommandInteraction<CacheType>){
+      const embed: EmbedBuilder = this.message.getCommandList()
+      int.reply({ embeds: [embed] })
+    }
+
     checkSong(int: ChatInputCommandInteraction<CacheType>, text: string){
       const reg = new RegExp('^[0-9]*$')
 

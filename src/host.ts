@@ -1,12 +1,13 @@
 import { ChatInputCommandInteraction, Client, type CacheType } from 'discord.js';
 import Player from './player';
+import Message from './message'
 import { getVoiceChannel } from './utils/host.util';
 import type { Commands } from './types/command.type';
 
 class Host {
     private readonly client: Client
     private readonly player: Player
-    private readonly commands: Commands 
+    private readonly commands: Commands
 
     constructor(client: Client) {
         this.client = client
@@ -21,8 +22,9 @@ class Host {
             pause: (int: any, text?: any) => this.player.pause(int),
             resume: (int: any, text?: any) => this.player.resume(int),
             // l : (u,m,e)=>this.player.leave(u,m,e),
-            np: (int: any, text: any)=>this.player.checkSong(int, text),
-            queue : (int: any, text: any)=>this.player.getQueue(int, text),
+            np: (int: any, text: any) => this.player.checkSong(int, text),
+            queue: (int: any, text: any) => this.player.getQueue(int, text),
+            help: (int: any, text?: any) => this.player.getHelp(int)
             //     loop: (u,m,e)=>this.player.loop(u,m,e),
             // idof: (u,m,e)=>this.getId(u,m,e),
             // addq: (u,m,e)=>this.addQuote(u,m,e)

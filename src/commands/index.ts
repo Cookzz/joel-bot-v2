@@ -84,6 +84,12 @@ const getQueue = {
         )
 }
 
+const help = {
+    ...new SlashCommandBuilder()
+    .setName("help")
+    .setDescription("Lists all available commands")
+}
+
 //TODO: see if its possible to simplify and not repeat SlashCommandBuilder()
 
 const COMMANDS = [
@@ -94,6 +100,7 @@ const COMMANDS = [
     moveMusic,
     removeMusic,
     nowPlaying,
+    help,
     getQueue
 ]
 

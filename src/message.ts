@@ -1,6 +1,7 @@
 import { EmbedBuilder, type APIEmbedField, type APIEmbedFooter } from 'discord.js'
 import type { MusicDetails } from "./types/music-details.type";
 import { getDuration } from "./utils/common.util";
+import COMMANDS from './commands';
 
 const quoteList = [
   "Why lah bro",
@@ -87,6 +88,24 @@ class Message {
         embedded.setImage(thumbnailUrl)
       }
 
+      return embedded
+    }
+
+    getCommandList(): EmbedBuilder {
+      const j = "Joel Bot"
+      const quoteNo = Math.floor((Math.random() * quoteList.length))
+      const q = quoteList[quoteNo]
+
+      const fields: APIEmbedField[] = COMMANDS.map((cmd) => (
+        { name: `/${cmd.name}`, value: cmd.description }
+      ))
+
+      let embedded = new EmbedBuilder()
+                          .setAuthor({ name: `${j} - ${q}`})
+                          .setTitle("Command List")
+                          .setColor(6910463)
+                          .addFields(fields)
+              
       return embedded
     }
 }
