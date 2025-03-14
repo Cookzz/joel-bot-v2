@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, Client, type CacheType } from 'discord.js';
 import Player from './player';
 import Message from './message'
-import { getVoiceChannel } from './utils/host.util';
+import { getVoiceChannel, validateInput } from './utils/host.util';
 import type { Commands } from './types/command.type';
 
 class Host {
@@ -37,15 +37,7 @@ class Host {
         we also stringify number into a string in order to take advantage of discord side validation
     */
     async onCommand(interaction: ChatInputCommandInteraction<CacheType>, command: string) {
-        let text = interaction.options.getString('text') ?? 
-                   String(interaction.options.getNumber('number')) ?? '';
-        let secondaryText = interaction.options.getString('text2') ?? 
-                            String(interaction.options.getNumber('number2')) ?? null;
-
-        //have "optional" secondary option, we try to not use more than 2 options
-        if (secondaryText){
-            text += `,${secondaryText}`
-        }
+        const text = validateInput(interaction)
         
         await this.commands[command](interaction, text)
     }

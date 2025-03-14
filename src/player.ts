@@ -67,7 +67,6 @@ class Player {
       if (this.currentConnection){
         this.currentConnection.on(VoiceConnectionStatus.Disconnected, (oldState, newState) => {
           this.setVoiceId(null)
-          this.currentConnection?.destroy()
         })
       }
     }
@@ -142,13 +141,13 @@ class Player {
     
     resume(int: ChatInputCommandInteraction<CacheType>){
       if (this.songList.length === 0){
-        int.reply("No song to pause.")
+        int.reply("No song to resume.")
         return
       }
       if (this.currentBotState === AudioPlayerStatus.Paused){
         this.audioPlayer.unpause()
 
-        int.reply("Paused song.")
+        int.reply("Resumed song.")
       }
     }
 
@@ -335,7 +334,7 @@ class Player {
           this.allSongList = [];
           console.log('leaving here');
 
-          if (this.currentConnection !== null){
+          if (this.currentConnection !== null && this.songList.length === 0){
             this.currentConnection.disconnect()
           }
         }
