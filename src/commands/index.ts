@@ -32,8 +32,8 @@ const resumeMusic = {
 
 const moveMusic = {
     ...new SlashCommandBuilder()
-        .setName("remove")
-        .setDescription("Remove music from queue")
+        .setName("move")
+        .setDescription("Move a song from one slot to another")
         .addNumberOption(option => 
             option
                 .setName("text")

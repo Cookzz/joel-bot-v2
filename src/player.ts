@@ -26,7 +26,6 @@ class Player {
     private readonly message;
     private songList: MusicDetails[]; //"current" list
     private allSongList: MusicDetails[]; //we store it separately in case the user wants to loop the whole list again
-    private loopQueueCount: number;
     private willLoop: boolean;
     private audioPlayer: AudioPlayer;
     private currentConnection: VoiceConnection | null;
@@ -38,7 +37,6 @@ class Player {
         this.message = new Message()
         this.songList = [];
         this.allSongList = [];
-        this.loopQueueCount = 0;
         this.willLoop = false;
         this.audioPlayer = createAudioPlayer()
         this.currentConnection = null
@@ -316,14 +314,17 @@ class Player {
         //remove song before removing the song that was done
         this.removeDownload()
 
+        if (!this.willLoop){
+          this.allSongList.shift()
+        }
+
         this.songList.shift()
 
         if (this.songList.length > 0){
           this.play()
           console.log('continue play');
         } else if (this.willLoop) {
-          console.log('loop');
-          this.songList = j2j(this.allSongList);
+          this.songList = this.songList.concat(this.allSongList);
           this.play()
         } else {
           this.allSongList = [];
@@ -415,8 +416,8 @@ class Player {
 
       let no: number = (info.videoDetails.thumbnail.thumbnails.length)-1
       let sec: number = Number(info.videoDetails.lengthSeconds)
-      let minutes = Math.floor((sec/ 60)) + ""
-      let seconds = Math.floor((sec % 60)) + ""
+      let minutes = String(Math.floor((sec/ 60)))
+      let seconds = String(Math.floor((sec % 60)))
 
       int.channel.send(`**Added:** ${info.videoDetails.title}` +
       (

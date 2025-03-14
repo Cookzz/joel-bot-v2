@@ -1,7 +1,6 @@
-import { Embed, EmbedBuilder, type APIEmbedField, type APIEmbedFooter } from 'discord.js'
-import type { EmbeddedMessage } from "./types/embedded-message.type";
+import { EmbedBuilder, type APIEmbedField, type APIEmbedFooter } from 'discord.js'
 import type { MusicDetails } from "./types/music-details.type";
-import { getDuration, j2j } from "./utils/common.util";
+import { getDuration } from "./utils/common.util";
 
 const quoteList = [
   "Why lah bro",
