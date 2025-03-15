@@ -151,6 +151,25 @@ class Player {
       }
     }
 
+    leave(int: ChatInputCommandInteraction<CacheType>){
+      if (this.currentVoiceID && this.currentConnection){
+        this.audioPlayer.stop(true)
+        this.currentConnection?.disconnect()
+
+        this.songList = [];
+        this.allSongList = [];
+        this.willLoop = false;
+        this.audioPlayer = createAudioPlayer()
+        this.currentConnection = null
+        this.currentVoiceID = null
+        this.currentBotState = "idle" //we assume its currently idle
+        
+        this.setVoiceId(null)
+
+        int.reply("Left the voice channel.")
+      }
+    }
+
     loop(int: ChatInputCommandInteraction<CacheType>){
       const loopState = !this.willLoop
       this.willLoop = loopState

@@ -90,6 +90,12 @@ const getQueue = {
         )
 }
 
+const leave = {
+    ...new SlashCommandBuilder()
+        .setName("leave")
+        .setDescription("Leave voice channel.")
+}
+
 const help = {
     ...new SlashCommandBuilder()
     .setName("help")
@@ -108,6 +114,7 @@ const COMMANDS = [
     loopList,
     nowPlaying,
     help,
+    leave,
     getQueue
 ]
 

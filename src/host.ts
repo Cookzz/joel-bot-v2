@@ -21,7 +21,7 @@ class Host {
             // se: (u,m,e)=>this.player.seek(u,m,e),
             pause: (int: any, text?: any) => this.player.pause(int),
             resume: (int: any, text?: any) => this.player.resume(int),
-            // l : (u,m,e)=>this.player.leave(u,m,e),
+            leave : (int: any, text?: any) => this.player.leave(int),
             np: (int: any, text: any) => this.player.checkSong(int, text),
             queue: (int: any, text: any) => this.player.getQueue(int, text),
             help: (int: any, text?: any) => this.player.getHelp(int),
