@@ -21,6 +21,7 @@
     "@distube/ytdl-core": "^4.16.4",
     "discord.js": "^14.18.0",
     "ffmpeg": "^0.0.4",
+    "ffmpeg-static": "^5.2.0",
     "ky": "^1.7.5",
     "libsodium-wrappers": "^0.7.15",
     "yt-dlp-wrap": "^2.3.12"
