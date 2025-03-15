@@ -1,6 +1,7 @@
 import type { Channel } from "discord.js"
 
 export interface MusicDetails {
+    id: number,
     url: string,
     path: string,
     options: any[],

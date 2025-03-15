@@ -1,13 +1,9 @@
-export const j2j = (j: any) => {
-    return JSON.parse(JSON.stringify(j));
-}
-
-export const pad = (number: number) => {
+export const pad = (number: number): string => {
     return `${number}`.slice(-2);
 }
 
-export const randomId = () => {
-    //generate random alphanumeric id
+//generate random alphanumeric id, used only up to 10 items so ID collision is minimal
+export const randomId = (): string => {
     const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&';
     let id = '';
 
@@ -16,6 +12,11 @@ export const randomId = () => {
     }
 
     return id;
+}
+
+//generate more unique id for music queue and loop tracking
+export const getUUID = (length: number = 16): number => {
+    return parseInt(Math.ceil(Math.random() * Date.now()).toPrecision(length).toString().replace(".", ""))
 }
 
 export const getDuration = (durations: string[]): string => {

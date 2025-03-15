@@ -15,7 +15,7 @@ import { existsSync, rmSync } from 'node:fs'
 import { platform } from 'os';
 import Message from './message'
 
-import { j2j, randomId } from './utils/common.util';
+import { getUUID, randomId } from './utils/common.util';
 import type { MusicDetails } from './types/music-details.type';
 import { YOUTUBE_REGEX } from './constant';
 
@@ -149,6 +149,15 @@ class Player {
 
         int.reply("Resumed song.")
       }
+    }
+
+    loop(int: ChatInputCommandInteraction<CacheType>){
+      const loopState = !this.willLoop
+      this.willLoop = loopState
+
+      this.processLoopData(loopState)
+
+      int.reply(`${this.willLoop ? 'Enabled' : 'Disabled'} loop`)
     }
 
     //because 2 fields are required, we will assume there will always be 2 fields
@@ -362,6 +371,26 @@ class Player {
       }
     }
 
+    /* Once loop is disabled, we: a) delete all the cached downloads up until the currently playing song */
+    processLoopData(loopEnabled: boolean){
+      if (!loopEnabled && this.allSongList.length > this.songList.length){
+        const currentSong = this.songList[0]
+        const currentIndex = this.allSongList.findIndex(s => s.id === currentSong.id)
+
+        //here, we only deal with it up until the currently playing songs in the looping list
+        if (currentIndex > 0){
+          const deletedSongs = this.allSongList.splice(0, (currentIndex-1))
+
+          deletedSongs.forEach((song) => {
+            const fileExists = existsSync(song.path)
+            if (fileExists) {
+              rmSync(song.path);
+            }
+          })
+        }
+      }
+    }
+
     /* We added a field called hasDownloaded, therefore the only thing we will then have to check is if:
     * a) the list is still bigger than 10 songs
     * b) if the 10th song has yet to "pre-download" when it reaches its turn
@@ -430,6 +459,7 @@ class Player {
       )
 
       return [{
+        id: getUUID(),
         url,
         path,
         options,
@@ -460,6 +490,8 @@ class Player {
       let searchId = await ytDlpWrap.execPromise(searchOptions)
 
       msg.delete()
+
+      console.log("searching - ", query)
 
       if (searchId.trim() == "") {
         await int.channel.send("Video not found! Please try again.")

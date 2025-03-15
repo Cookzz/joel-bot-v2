@@ -24,8 +24,8 @@ class Host {
             // l : (u,m,e)=>this.player.leave(u,m,e),
             np: (int: any, text: any) => this.player.checkSong(int, text),
             queue: (int: any, text: any) => this.player.getQueue(int, text),
-            help: (int: any, text?: any) => this.player.getHelp(int)
-            //     loop: (u,m,e)=>this.player.loop(u,m,e),
+            help: (int: any, text?: any) => this.player.getHelp(int),
+            loop: (int: any, text?: any) => this.player.loop(int),
             // idof: (u,m,e)=>this.getId(u,m,e),
             // addq: (u,m,e)=>this.addQuote(u,m,e)
         }
