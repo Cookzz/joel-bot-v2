@@ -29,7 +29,7 @@ class Player {
     private willLoop: boolean;
     private audioPlayer: AudioPlayer;
     private currentConnection: VoiceConnection | null;
-    private currentVoiceID: any | null;
+    private currentVoiceID: string | null;
     private currentBotState: string;
 
     constructor(client: Client){
@@ -56,19 +56,11 @@ class Player {
           this.songEnd()
         }
       })
-    }
 
-    private initListeners(){
       this.audioPlayer.on('error', error => {
         console.log(error)
         this.playYoutube()
       })
-
-      if (this.currentConnection){
-        this.currentConnection.on(VoiceConnectionStatus.Disconnected, (oldState, newState) => {
-          this.setVoiceId(null)
-        })
-      }
     }
 
     public setVoiceId(id: any){
@@ -79,6 +71,7 @@ class Player {
       return this.currentVoiceID
     }
 
+    /* Command-based functions */
     async add(int: ChatInputCommandInteraction<CacheType>, text: string){
       let isPlaylist = false;
       let list = null;
@@ -307,8 +300,14 @@ class Player {
 
       int.reply({ embeds: [embed] })
     }
+    /* Command-based functions */
 
-    async playYoutube(){
+    /* Sub-functions */
+    async joinVC(){
+      if (this.currentConnection){
+        return this.currentConnection
+      }
+
       const currentChannel = await this.client.channels.fetch(this.songList[0].voice)
 
       //This one just makes sure user is in voice channel
@@ -319,8 +318,22 @@ class Player {
           adapterCreator: currentChannel.guild.voiceAdapterCreator
         })
 
+        this.currentConnection.once(VoiceConnectionStatus.Disconnected, () => {
+          this.setVoiceId(null)
+        })
+
+        return this.currentConnection
+      }
+
+      return null
+    }
+
+    async playYoutube(){
+      const connection = await this.joinVC()
+
+      if (connection){
         //subscribe to "audio player events"
-        this.currentConnection.subscribe(this.audioPlayer)
+        connection.subscribe(this.audioPlayer)
 
         //play from the downloaded path
         const resource = createAudioResource(this.songList[0].path, { inputType: StreamType.OggOpus })
@@ -335,8 +348,6 @@ class Player {
           }])
 
         const res = await this.songList[0].channel.send({embeds: [embed]})
-
-        this.initListeners()
 
         return res
       }
@@ -522,7 +533,7 @@ class Player {
 
       return await this.fromLink(int, videoUrl)
     }
-    /* From... */
+    /* Sub-functions */
 }
 
 export default Player;
