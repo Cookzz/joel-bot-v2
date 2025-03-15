@@ -3,9 +3,10 @@ import { Client, Events, GatewayIntentBits, REST, Routes } from 'discord.js';
 import { TOKEN, CLIENT_ID } from './config.json'
 import COMMANDS from './src/commands'
 import Host from './src/host';
-import YTDlpWrap from 'yt-dlp-wrap';
 import { platform } from 'os';
-import { readdirSync, unlinkSync, existsSync } from 'node:fs'
+import { readdirSync, unlinkSync, existsSync, mkdirSync } from 'node:fs'
+
+const YTDlpWrap = require('yt-dlp-wrap-plus').default;
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 
@@ -13,6 +14,13 @@ const cmd = COMMANDS
 
 /* Download the required yt-dlp binary depending on the platform from github */
 try {
+  console.log("Check for binary directory")
+
+  if (!existsSync('./binaries')){
+    console.log("Created directory for binary storage")
+    mkdirSync('./binaries')
+  }
+
   console.log("Started downloading yt-dlp binary.")
 
   const binaryPath = `./binaries/yt-dlp${platform() === 'win32' ? '.exe' : ''}`
@@ -36,6 +44,10 @@ try {
 /* Auto-clear tmp files */
 try {
   console.log("Clearing tmp files")
+
+  if (!existsSync('./tmp')){
+      mkdirSync('./tmp')
+  }
 
   readdirSync('./tmp').forEach(file => unlinkSync(`./tmp/${file}`));
 

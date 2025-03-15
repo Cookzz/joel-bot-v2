@@ -10,7 +10,6 @@ import {
   VoiceConnectionStatus
 } from '@discordjs/voice';
 import ytdlCore from '@distube/ytdl-core'
-import YTDlpWrap from 'yt-dlp-wrap';
 import { existsSync, rmSync } from 'node:fs'
 import { platform } from 'os';
 import Message from './message'
@@ -19,7 +18,9 @@ import { getUUID, randomId } from './utils/common.util';
 import type { MusicDetails } from './types/music-details.type';
 import { YOUTUBE_REGEX } from './constant';
 
-const ytDlpWrap = new YTDlpWrap(`./binaries/yt-dlp${platform() === 'win32' ? '.exe' : ''}`);
+const YTDlpWrapper = require('yt-dlp-wrap-plus').default;
+
+const ytDlpWrap = new YTDlpWrapper(`./binaries/yt-dlp${platform() === 'win32' ? '.exe' : ''}`);
 
 class Player {
     private readonly client;
