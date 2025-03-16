@@ -154,7 +154,8 @@ class Player {
       }
 
       //note: if loop is on, we don't really care and just append whatever was previously queued in, so we dont clear it
-      const clearedSongs = this.songList.splice(1, (songListLength-1))
+      this.songList.splice(1, (songListLength-1))
+      // const clearedSongs = this.songList.splice(1, (songListLength-1))
 
       // if (!this.willLoop){
       //   const downloadedSongs = clearedSongs.filter(s => s.hasDownloaded === true)
@@ -436,14 +437,15 @@ class Player {
 
         //here, we only deal with it up until the currently playing songs in the looping list
         if (currentIndex > 0){
-          const deletedSongs = this.allSongList.splice(0, (currentIndex-1))
+          this.allSongList.splice(0, (currentIndex-1))
+          // const deletedSongs = this.allSongList.splice(0, (currentIndex-1))
 
-          deletedSongs.forEach((song) => {
-            const fileExists = existsSync(song.path)
-            if (fileExists) {
-              rmSync(song.path);
-            }
-          })
+          // deletedSongs.forEach((song) => {
+          //   const fileExists = existsSync(song.path)
+          //   if (fileExists) {
+          //     rmSync(song.path);
+          //   }
+          // })
         }
       }
     }
