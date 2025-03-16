@@ -19,6 +19,20 @@ Then run the bot with `bun run start`.
 
 Voila, you can now play music in your Discord server! 🎉
 
+# For users
+
+Setup a config.json file.
+```json
+{
+    "TOKEN": "YOUR_BOT_TOKEN",
+    "CLIENT_ID": "YOUR_BOT_CLIENT_ID"
+}
+```
+
+And then run the provided binary: https://github.com/Cookzz/joel-bot-v2/releases
+
+Please note that it is highly recommended to store and run a binary in a separate folder as it will create the necessary folders and download the required binaries to function.
+
 # Commands
 - **play**: Plays a song from YouTube (link and search supported, no playlist).
   - Usage: `/play <youtube link or name>`
