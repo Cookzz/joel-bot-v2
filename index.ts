@@ -3,54 +3,54 @@ import { Client, Events, GatewayIntentBits, REST, Routes } from 'discord.js';
 import COMMANDS from './src/commands'
 import Host from './src/host';
 import { readdirSync, unlinkSync, existsSync, mkdirSync } from 'node:fs'
-import { getYtdlpExecutableName } from './src/utils/config.util';
+// import { getYtdlpExecutableName } from './src/utils/config.util';
 
-const YTDlpWrap = require('yt-dlp-wrap-plus').default;
+// const YTDlpWrap = require('yt-dlp-wrap-plus').default;
 
 const cmd = COMMANDS
 
 /* Download the required yt-dlp binary depending on the platform from github */
-try {
-  console.log("Check for binary directory")
+// try {
+//   console.log("Check for binary directory")
 
-  if (!existsSync('./binaries')){
-    console.log("Created directory for binary storage")
-    mkdirSync('./binaries')
-  }
+//   if (!existsSync('./binaries')){
+//     console.log("Created directory for binary storage")
+//     mkdirSync('./binaries')
+//   }
 
-  console.log("Started downloading yt-dlp binary.")
+//   console.log("Started downloading yt-dlp binary.")
 
-  const binaryPath = `./binaries/${getYtdlpExecutableName()}`
-  const hasBinary = existsSync(binaryPath)
+//   const binaryPath = `./binaries/${getYtdlpExecutableName()}`
+//   const hasBinary = existsSync(binaryPath)
 
-  if (!hasBinary) {
-    await YTDlpWrap.downloadFromGithub(
-      binaryPath, //Platform dependent
-      undefined
-    );
+//   if (!hasBinary) {
+//     await YTDlpWrap.downloadFromGithub(
+//       binaryPath, //Platform dependent
+//       undefined
+//     );
   
-    console.log("Finished downloading yt-dlp binary.")
-  } else {
-    console.log("Binary already exists")
-  }
-} catch (error) {
-  console.error(error);
-}
+//     console.log("Finished downloading yt-dlp binary.")
+//   } else {
+//     console.log("Binary already exists")
+//   }
+// } catch (error) {
+//   console.error(error);
+// }
 
 /* Auto-clear tmp files */
-try {
-  console.log("Clearing tmp files")
+// try {
+//   console.log("Clearing tmp files")
 
-  if (!existsSync('./tmp')){
-      mkdirSync('./tmp')
-  }
+//   if (!existsSync('./tmp')){
+//       mkdirSync('./tmp')
+//   }
 
-  readdirSync('./tmp').forEach(file => unlinkSync(`./tmp/${file}`));
+//   readdirSync('./tmp').forEach(file => unlinkSync(`./tmp/${file}`));
 
-  console.log("Cleared tmp files")
-} catch (error) {
-  console.error(error);
-}
+//   console.log("Cleared tmp files")
+// } catch (error) {
+//   console.error(error);
+// }
 
 /* Handle configuration and initialization */
 try {
