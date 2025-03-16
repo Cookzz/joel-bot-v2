@@ -1,6 +1,5 @@
 import { Client, Events, GatewayIntentBits, REST, Routes } from 'discord.js';
 
-import { TOKEN, CLIENT_ID } from './config.json'
 import COMMANDS from './src/commands'
 import Host from './src/host';
 import { readdirSync, unlinkSync, existsSync, mkdirSync } from 'node:fs'
@@ -8,9 +7,23 @@ import { getYtdlpExecutableName } from './src/utils/config.util';
 
 const YTDlpWrap = require('yt-dlp-wrap-plus').default;
 
-const rest = new REST({ version: '10' }).setToken(TOKEN);
-
 const cmd = COMMANDS
+
+/* Check if config.json file exists first, if not we will throw an error
+Continue to import if it exists */
+try {
+  console.log("Checking config file")
+
+  if (!existsSync('./config.json')){
+      throw new Error("No config file found. Please check README and setup one yourself.")
+  }
+  console.log("Config file exists")
+} catch (error) {
+  console.error("Config file search error: ", error);
+}
+
+import { TOKEN, CLIENT_ID } from './config.json'
+const rest = new REST({ version: '10' }).setToken(TOKEN);
 
 /* Download the required yt-dlp binary depending on the platform from github */
 try {
