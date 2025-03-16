@@ -4,6 +4,18 @@ Joel is a strong bot now.
 
 It can play youtube music with hacky workarounds.
 
+The purpose of this bot is due to my frustrations with unreliable music bots and that nowadays music bots are all premium, subscription-based services and so, Joel Bot was born to solve these problems by self-hosting our own bot for me and my friends to use.
+
+Originally, I wanted to just make it for myself to use on one server but i thought if I can create an accessible binary that helps to setup all of the essential things that the bot needs for everyone to use and the only action the user needs to do is to get the token & id from discord portal, setup a single config file and run it - it would be awesome.
+
+So yeah, this bot suddenly went from a joke, a hobby then now a proper release.
+
+# Pre-requisites for developers
+
+- Requires the `bun` package to run. Make sure you have it installed (https://bun.sh/).
+- Git (https://git-scm.com/downloads)
+- NodeJS (https://nodejs.org/en) **or** fnm: node.js version manager (https://github.com/Schniz/fnm)
+
 # How to use
 
 Setup a config.json file.
@@ -19,7 +31,7 @@ Then run the bot with `bun run start`.
 
 Voila, you can now play music in your Discord server! 🎉
 
-# For users
+# For users (non-devs)
 
 Setup a config.json file.
 ```json
@@ -28,7 +40,7 @@ Setup a config.json file.
     "CLIENT_ID": "YOUR_BOT_CLIENT_ID"
 }
 ```
-
+Where to get: https://discord.com/developers/applications
 And then run the provided binary: https://github.com/Cookzz/joel-bot-v2/releases
 
 Please note that it is highly recommended to store and run a binary in a separate folder as it will create the necessary folders and download the required binaries to function.
@@ -79,7 +91,11 @@ Please note that it is highly recommended to store and run a binary in a separat
 
 # Notes
 - As of 15 March 2025, running on node v21.7.3 & v23.10.0 without any issues. Recommended node version but you can use any version you'd like, can't guarantee it works though.
-- Requires the `bun` package to run. Make sure you have it installed (https://bun.sh/).
 - You can leave binaries folder alone. In index.ts, we are downloading automatically to that folder for the required binaries, so if you want to use a different binary, just replace the ones in there with your own.
 - Leave tmp folder alone, its just used to store music temp files
 
+# Supported Platforms
+- [X] Windows 10/11
+- [X] Linux on ARM (tested on raspberry pi)
+- [X] Linux (untested, try at your own risk)
+- [ ] MacOS

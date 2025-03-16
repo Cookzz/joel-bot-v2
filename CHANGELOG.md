@@ -1,3 +1,8 @@
+## 0.2.1 (2025-03-16) - HOTFIX
+
+* Fixed yt-dlp binary typo ([2a830e2](https://github.com/Cookzz/joel-bot-v2/commit/2a830e2b199ab68616f6bd6319f646169f8b00f2))
+* Fixed incorrect wrong yt-dlp binary extension ([5f04017](https://github.com/Cookzz/joel-bot-v2/commit/5f0401767c4c7a0fbb9e2a7c4d96c418d85d56fa))
+
 ## 0.2.0 (2025-03-16)
 
 First release - windows-only support
