@@ -156,15 +156,15 @@ class Player {
       //note: if loop is on, we don't really care and just append whatever was previously queued in, so we dont clear it
       const clearedSongs = this.songList.splice(1, (songListLength-1))
 
-      if (!this.willLoop){
-        const downloadedSongs = clearedSongs.filter(s => s.hasDownloaded === true)
-        downloadedSongs.forEach((song) => {
-          const fileExists = existsSync(song.path)
-          if (fileExists) {
-            rmSync(song.path);
-          }
-        })
-      }
+      // if (!this.willLoop){
+      //   const downloadedSongs = clearedSongs.filter(s => s.hasDownloaded === true)
+      //   downloadedSongs.forEach((song) => {
+      //     const fileExists = existsSync(song.path)
+      //     if (fileExists) {
+      //       rmSync(song.path);
+      //     }
+      //   })
+      // }
     }
 
     leave(int: ChatInputCommandInteraction<CacheType>){
@@ -249,7 +249,7 @@ class Player {
       }
 
       const removedSong = this.songList[songNo]
-      this.removeDownload(songNo)
+      // this.removeDownload(songNo)
 
       this.songList.splice(songNo, 1)
 
@@ -360,8 +360,10 @@ class Player {
         //subscribe to "audio player events"
         connection.subscribe(this.audioPlayer)
 
+        const readableStream = ytdlCore(this.songList[0].url, { filter : 'audioonly', quality: 'highestaudio', highWaterMark: 1<<25 })
+
         //play from the downloaded path
-        const resource = createAudioResource(this.songList[0].path, { inputType: StreamType.OggOpus })
+        const resource = createAudioResource(readableStream)
 
         //play that resource
         this.audioPlayer.play(resource)
@@ -380,7 +382,7 @@ class Player {
 
     songEnd(){
         //remove song before removing the song that was done
-        this.removeDownload()
+        // this.removeDownload()
 
         if (!this.willLoop){
           this.allSongList.shift()
@@ -404,7 +406,7 @@ class Player {
         }
 
         //when a song ends, regardless, we check for pre-downloads since the array gets shifted anyway
-        this.toPreDownload();
+        // this.toPreDownload();
     }
 
     removeDownload(no?: number){
@@ -489,17 +491,18 @@ class Player {
     */
     async fromLink(int: any, url: string): Promise<MusicDetails[]> {
       const path = `./tmp/${randomId()}.ogg`;
-      const options = this.buildYtdlpOptions(url, path);
+      // const options = this.buildYtdlpOptions(url, path);
 
       //over here, we will control how many files we download in a list. if the list is more than 10, we stop "pre-downloading"
-      let downloadPromise: any = ytDlpWrap.execPromise(options)
-      let hasDownloaded: boolean = true
-      if (this.songList.length > 10) {
-        downloadPromise = Promise.resolve()
-        hasDownloaded = false
-      }
+      // let downloadPromise: any = ytDlpWrap.execPromise(options)
+      // let hasDownloaded: boolean = true
+      // if (this.songList.length > 10) {
+      //   downloadPromise = Promise.resolve()
+      //   hasDownloaded = false
+      // }
       
-      const [musicInfo, music] = await Promise.allSettled([ytdlCore.getInfo(url), downloadPromise])
+      // const [musicInfo, music] = await Promise.allSettled([ytdlCore.getInfo(url), downloadPromise])
+      const [musicInfo] = await Promise.allSettled([ytdlCore.getInfo(url)])
       const info = musicInfo?.value;
 
       let no: number = (info.videoDetails.thumbnail.thumbnails.length)-1
@@ -517,8 +520,8 @@ class Player {
         id: getUUID(),
         url,
         path,
-        options,
-        hasDownloaded,
+        options: [],
+        hasDownloaded: false,
         type: "youtube",
         details:{
           title: info.videoDetails.title,
