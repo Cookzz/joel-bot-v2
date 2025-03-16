@@ -36,13 +36,13 @@ const moveMusic = {
         .setDescription("Move a song from one slot to another")
         .addNumberOption(option => 
             option
-                .setName("text")
+                .setName("number")
                 .setDescription("Song no. to move")
                 .setRequired(true)
         )
         .addNumberOption(option => 
             option
-                .setName("text2")
+                .setName("number2")
                 .setDescription("Position to move to")
                 .setRequired(true)
         )

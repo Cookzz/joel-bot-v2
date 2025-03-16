@@ -204,8 +204,8 @@ class Player {
 
       //position 0 is the currently playing song, we dont allow it to get replaced
       if (
-        (fromPosition < 1 && fromPosition > this.songList.length) ||
-        (toPosition < 1 && toPosition > this.songList.length)
+        (fromPosition < 1 || fromPosition > this.songList.length) ||
+        (toPosition < 1 || toPosition > this.songList.length)
       ){
         int.reply("Invalid position")
         return
