@@ -320,6 +320,8 @@ class Player {
         })
 
         this.currentConnection.once(VoiceConnectionStatus.Disconnected, () => {
+          this.audioPlayer = createAudioPlayer()
+          this.currentConnection = null
           this.setVoiceId(null)
         })
 
