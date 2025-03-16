@@ -20,7 +20,7 @@ try {
 
   console.log("Started downloading yt-dlp binary.")
 
-  const binaryPath = `./binaries/${getYtdlpExecutableName()}}`
+  const binaryPath = `./binaries/${getYtdlpExecutableName()}`
   const hasBinary = existsSync(binaryPath)
 
   if (!hasBinary) {
