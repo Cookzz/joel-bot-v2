@@ -3,8 +3,8 @@ import { Client, Events, GatewayIntentBits, REST, Routes } from 'discord.js';
 import { TOKEN, CLIENT_ID } from './config.json'
 import COMMANDS from './src/commands'
 import Host from './src/host';
-import { platform } from 'os';
 import { readdirSync, unlinkSync, existsSync, mkdirSync } from 'node:fs'
+import { getYtdlpExecutableName } from './src/utils/config.util';
 
 const YTDlpWrap = require('yt-dlp-wrap-plus').default;
 
@@ -23,14 +23,13 @@ try {
 
   console.log("Started downloading yt-dlp binary.")
 
-  const binaryPath = `./binaries/yt-dlp${platform() === 'win32' ? '.exe' : ''}`
+  const binaryPath = `./binaries/${getYtdlpExecutableName()}}`
   const hasBinary = existsSync(binaryPath)
 
   if (!hasBinary) {
     await YTDlpWrap.downloadFromGithub(
       binaryPath, //Platform dependent
-      undefined,
-      platform()
+      undefined
     );
   
     console.log("Finished downloading yt-dlp binary.")
