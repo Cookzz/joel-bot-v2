@@ -7,7 +7,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "bun index.ts",
-    "dev": "bun --watch index.ts"
+    "dev": "bun --watch index.ts",
+    "build-windows": "bun build --compile --target=bun-windows-x64 ./index.ts --outfile joelbot",
+    "build-linux-arm": "bun build --compile --target=bun-linux-arm64 ./index.ts --outfile joelbot",
+    "build-linux": "bun build --compile --target=bun-linux-x64 ./index.ts --outfile joelbot"
   },
   "devDependencies": {
     "@types/bun": "latest"
