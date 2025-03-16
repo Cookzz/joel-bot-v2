@@ -15,6 +15,7 @@ So yeah, this bot suddenly went from a joke, a hobby then now a proper release.
 - Requires the `bun` package to run. Make sure you have it installed (https://bun.sh/).
 - Git (https://git-scm.com/downloads)
 - NodeJS (https://nodejs.org/en) **or** fnm: node.js version manager (https://github.com/Schniz/fnm)
+- FFmpeg (https://ffmpeg.org/download.html)
 
 # How to use
 
