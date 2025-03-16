@@ -2,3 +2,5 @@ node_modules
 config.json
 binaries/*
 tmp/*
+joelbot.exe
+joelbot
