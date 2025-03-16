@@ -18,16 +18,14 @@ class Host {
             move: (int: any, text: any)=>this.player.move(int, text),
             remove: (int: any, text: any)=>this.player.remove(int, text),
             skip : (int: any, text?: any) => this.player.skip(int),
-            // se: (u,m,e)=>this.player.seek(u,m,e),
             pause: (int: any, text?: any) => this.player.pause(int),
             resume: (int: any, text?: any) => this.player.resume(int),
+            clear: (int: any, text?: any) => this.player.clear(int),
             leave : (int: any, text?: any) => this.player.leave(int),
             np: (int: any, text: any) => this.player.checkSong(int, text),
             queue: (int: any, text: any) => this.player.getQueue(int, text),
             help: (int: any, text?: any) => this.player.getHelp(int),
             loop: (int: any, text?: any) => this.player.loop(int),
-            // idof: (u,m,e)=>this.getId(u,m,e),
-            // addq: (u,m,e)=>this.addQuote(u,m,e)
         }
     }
 

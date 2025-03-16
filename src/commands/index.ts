@@ -60,6 +60,12 @@ const removeMusic = {
         )
 }
 
+const clearMusic = {
+    ...new SlashCommandBuilder()
+        .setName("clear")
+        .setDescription("Clear queued songs except currently playing one")
+}
+
 const loopList = {
     ...new SlashCommandBuilder()
         .setName("loop")
@@ -111,6 +117,7 @@ const COMMANDS = [
     resumeMusic,
     moveMusic,
     removeMusic,
+    clearMusic,
     loopList,
     nowPlaying,
     help,

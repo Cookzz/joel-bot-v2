@@ -145,6 +145,28 @@ class Player {
       }
     }
 
+    clear(int: ChatInputCommandInteraction<CacheType>){
+      const songListLength = this.songList.length
+
+      if (this.songList.length < 2){
+        int.reply("No songs in queue to clear.")
+        return
+      }
+
+      //note: if loop is on, we don't really care and just append whatever was previously queued in, so we dont clear it
+      const clearedSongs = this.songList.splice(1, (songListLength-1))
+
+      if (!this.willLoop){
+        const downloadedSongs = clearedSongs.filter(s => s.hasDownloaded === true)
+        downloadedSongs.forEach((song) => {
+          const fileExists = existsSync(song.path)
+          if (fileExists) {
+            rmSync(song.path);
+          }
+        })
+      }
+    }
+
     leave(int: ChatInputCommandInteraction<CacheType>){
       if (this.currentVoiceID && this.currentConnection){
         this.audioPlayer.stop(true)

@@ -3,9 +3,6 @@
 Joel is a strong bot now.
 
 It can play youtube music with hacky workarounds.
-I can make it work in windows but since I want to get this running on a raspberry pi, I'm planning to prepare a binary for linux as well.
-
-We want to be independent from youtube's api token, so we might remove that soon.
 
 # How to use
 
@@ -16,6 +13,7 @@ Setup a config.json file.
     "CLIENT_ID": "YOUR_BOT_CLIENT_ID"
 }
 ```
+Where to get: https://discord.com/developers/applications
 
 Then run the bot with `bun run start`.
 
@@ -36,6 +34,8 @@ Voila, you can now play music in your Discord server! 🎉
   - Usage: `/queue <page number>`
 - **remove**: Get currently playing song or any of the selected queued songs.
   - Usage: `/remove <song no.>`
+- **clear**: Clear all queued songs except currently playing one
+  - Usage: `/clear`
 - **move**: Get currently playing song or any of the selected queued songs.
   - Usage: `/move <song no.> <to position>`
 - **loop**: Loop currently queued list of songs (and also caches the songs that were played before when its enabled)
@@ -52,13 +52,14 @@ Voila, you can now play music in your Discord server! 🎉
 - [ ] Support playlists
 - [X] Move songs (for example, from position 5 to 2)
 - [X] Remove songs from queue
+- [X] Fully clear an entire queue including downloads (if loop isn't enabled, so cached ones are safe)
 - [X] Get details of currently playing song
 - [X] Show queue list
 - [X] Add loop feature
 - [X] Leave voice call
  
 # TODO
-- Have a proper working playlist support (previous attempts bricked it for some reason)
+- Have a proper working playlist support (previous attempts bricked the bot)
 - Implement worker threads (multi-threading) so that playlists can be processed independently
 - Further refactoring (i have a headache just from my own code even though i'm the one who wrote it)
 
