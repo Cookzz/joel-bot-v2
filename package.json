@@ -8,8 +8,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "bun index.ts",
     "dev": "bun --watch index.ts",
-    "build-windows": "bun build --compile --minify --target=bun-windows-x64 ./index.ts --outfile joelbot-x64",
-    "build-linux-arm": "bun build --compile --target=bun-linux-arm64 ./index.ts --outfile joelbot-arm64",
+    "build-windows": "bun build --compile --minify --target=bun-windows-x64 ./index.ts --outfile joelbot-windows-x64",
+    "build-linux-arm": "bun build --compile --target=bun-linux-arm64 ./index.ts --outfile joelbot-linux-arm64",
     "build-linux": "bun build --compile --minify --target=bun-linux-x64 ./index.ts --outfile joelbot-linux-x64",
     "build-all": "bun build-windows && bun build-linux-arm && bun build-linux"
   },
