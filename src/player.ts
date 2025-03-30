@@ -402,6 +402,7 @@ class Player {
 
           if (this.currentConnection !== null){
             this.currentConnection.disconnect()
+            this.currentConnection = null
           }
         }
 
