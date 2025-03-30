@@ -168,7 +168,6 @@ class Player {
         this.songList = [];
         this.allSongList = [];
         this.willLoop = false;
-        this.audioPlayer = createAudioPlayer()
         this.currentConnection = null
         this.currentVoiceID = null
         this.currentBotState = "idle" //we assume its currently idle
