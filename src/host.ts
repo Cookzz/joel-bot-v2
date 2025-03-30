@@ -47,6 +47,7 @@ class Host {
             if (currentVoiceId !== voice){
                 int.ephemeral = true
                 int.reply("Not in the same voice channel as the bot")
+                return
             }
         }
 

@@ -24,25 +24,17 @@ const ytDlpWrap = new YTDlpWrapper(`./binaries/${getYtdlpExecutableName()}`);
 
 class Player {
     private readonly client;
-    private readonly message;
-    private songList: MusicDetails[]; //"current" list
-    private allSongList: MusicDetails[]; //we store it separately in case the user wants to loop the whole list again
-    private willLoop: boolean;
-    private audioPlayer: AudioPlayer;
-    private currentConnection: VoiceConnection | null;
-    private currentVoiceID: string | null;
-    private currentBotState: string;
+    private readonly message = new Message();
+    private songList: MusicDetails[] = []; //"current" list
+    private allSongList: MusicDetails[] = []; //we store it separately in case the user wants to loop the whole list again
+    private willLoop: boolean = false;
+    private audioPlayer: AudioPlayer = createAudioPlayer();
+    private currentConnection: VoiceConnection | null = null;
+    private currentVoiceID: string | null = null;
+    private currentBotState: string = "idle"; //we assume its currently idle
 
     constructor(client: Client){
         this.client = client;
-        this.message = new Message()
-        this.songList = [];
-        this.allSongList = [];
-        this.willLoop = false;
-        this.audioPlayer = createAudioPlayer()
-        this.currentConnection = null
-        this.currentVoiceID = null
-        this.currentBotState = "idle" //we assume its currently idle
 
         this.init()
     }
