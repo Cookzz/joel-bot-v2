@@ -49,8 +49,6 @@ class Player {
 
     private init(){
       this.audioPlayer.addListener('stateChange', (oldState, newState)=>{
-        console.log("check state", newState.status)
-
         this.currentBotState = newState.status
         //here, when the audio player is in an idle state, we will just assume the music has ended
         if (newState.status === 'idle') {
@@ -167,11 +165,12 @@ class Player {
       }
     }
 
-    leave(int: ChatInputCommandInteraction<CacheType>){
-      if (this.currentVoiceID && this.currentConnection){
+    leave(int?: ChatInputCommandInteraction<CacheType>){
+      if (this.currentVoiceID){
         this.audioPlayer.stop(true)
-        this.currentConnection?.disconnect()
-
+        if (this.currentConnection){
+          this.currentConnection?.disconnect()
+        }
         this.songList = [];
         this.allSongList = [];
         this.willLoop = false;
@@ -182,7 +181,9 @@ class Player {
         
         this.setVoiceId(null)
 
-        int.reply("Left the voice channel.")
+        if (int){
+          int.reply("Left the voice channel.")
+        }
       }
     }
 
@@ -266,7 +267,7 @@ class Player {
       }
 
       //do not allow page zero
-      if (text === undefined || text === null || text === ""){
+      if (!text || text === ""){
         text = "1" //set to page one by default
       }
 
@@ -304,7 +305,7 @@ class Player {
         return
       }
 
-      if (text === undefined || text === null || text === ""){
+      if (!text || text === ""){
         text = "0" //set to zero by default if user didn't provide anything
       }
 
@@ -342,9 +343,7 @@ class Player {
         })
 
         voiceChannel.once(VoiceConnectionStatus.Disconnected, () => {
-          this.audioPlayer = createAudioPlayer()
-          this.currentConnection = null
-          this.setVoiceId(null)
+          this.leave()
         })
 
         this.currentConnection = voiceChannel
@@ -392,7 +391,6 @@ class Player {
 
         if (this.songList.length > 0){
           this.play()
-          console.log('continue play');
         } else if (this.willLoop) {
           this.songList = this.songList.concat(this.allSongList);
           this.play()
@@ -401,8 +399,7 @@ class Player {
           console.log('leaving here');
 
           if (this.currentConnection !== null){
-            this.currentConnection.disconnect()
-            this.currentConnection = null
+            this.leave()
           }
         }
 
@@ -420,8 +417,6 @@ class Player {
         if (fileExists) {
           rmSync(finishedSongPath);
         }
-        
-        console.log(`removed ${finishedSongPath}`);
 
         if (no !== undefined && no < 10){
           this.toPreDownload()
@@ -552,8 +547,6 @@ class Player {
       let searchId = await ytDlpWrap.execPromise(searchOptions)
 
       msg.delete()
-
-      console.log("searching - ", query)
 
       if (searchId.trim() == "") {
         await int.channel.send("Video not found! Please try again.")
