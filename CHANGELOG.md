@@ -1,3 +1,13 @@
+## 0.2.2 (2025-03-30)
+
+* fix: incorrect input validation ([0157987](https://github.com/Cookzz/joel-bot-v2/commit/01579872338af734782fed811832cde44a2284cb))
+* Updated @distube/ytdl-core to 4.16.5 & bun to 1.2.8 ([958e7cb](https://github.com/Cookzz/joel-bot-v2/commit/958e7cbe8bde6c81c6ca0682c7094678953a2c86), [560489a](https://github.com/Cookzz/joel-bot-v2/commit/560489a7752989f0e4d276440a4e35d97ea6e1f0))
+* Removed "--minify" from linux build due to breaking discordjs ([96276ba](https://github.com/Cookzz/joel-bot-v2/commit/96276ba11493ef9da6407c4cf5f08a790ccf40cc))
+* chore: add custom try-catch handler ([da0fac8](https://github.com/Cookzz/joel-bot-v2/commit/da0fac8f785896bb4aac39508d2c1f824cc2cc6c))
+* fix: crash due to unable to fetch song info with ytdlCore ([bb4b6dc](https://github.com/Cookzz/joel-bot-v2/commit/bb4b6dcc9160d9d27c81184520497edc4b2de838))
+* fix: wrong splicing when moving ([76f3e7e](https://github.com/Cookzz/joel-bot-v2/commit/76f3e7eb6d09c1457f608629821fed0e8de3b138))
+
+
 ## 0.2.1 (2025-03-16) - HOTFIX
 
 * Fixed yt-dlp binary typo ([2a830e2](https://github.com/Cookzz/joel-bot-v2/commit/2a830e2b199ab68616f6bd6319f646169f8b00f2))
