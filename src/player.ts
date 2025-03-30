@@ -471,6 +471,8 @@ class Player {
         url,
         '-f',
         'ba',
+        '-N',
+        8,
         '-o',
         path,
       ]
