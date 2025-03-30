@@ -219,7 +219,7 @@ class Player {
       const allFromPosition = fromPosition + (this.allSongList.length - this.songList.length)
       const allToPosition = toPosition + (this.allSongList.length - this.songList.length)
 
-      this.allSongList.splice(allToPosition, 0, this.songList.splice(allFromPosition, 1)[0])
+      this.allSongList.splice(allToPosition, 0, this.allSongList.splice(allFromPosition, 1)[0])
 
       int.reply(`Moved ${songDetails.details.title} to position ${toPosition}`)
     }
