@@ -17,6 +17,7 @@ import { getUUID, randomId, tryCatch } from './utils/common.util';
 import type { MusicDetails } from './types/music-details.type';
 import { YOUTUBE_REGEX } from './constant';
 import { getYtdlpExecutableName } from './utils/config.util';
+import { buildYtdlpOptions, OptionType } from './utils/ytdlp.util';
 
 const YTDlpWrapper = require('yt-dlp-wrap-plus').default;
 
@@ -162,6 +163,7 @@ class Player {
         this.audioPlayer.stop(true)
         if (this.currentConnection){
           this.currentConnection?.disconnect()
+          this.currentConnection?.destroy()
         }
         this.songList = [];
         this.allSongList = [];
@@ -446,32 +448,12 @@ class Player {
       }
 
       if (!this.songList[9].hasDownloaded){
-        const options = this.buildYtdlpOptions(this.songList[9].url, this.songList[9].path);
+        const options = buildYtdlpOptions(OptionType.DOWNLOAD, { url: this.songList[9].url, path: this.songList[9].path });
 
         ytDlpWrap.exec(options).once('close', () => {
           this.songList[9].hasDownloaded = true;
         });
       }
-    }
-
-    buildYtdlpOptions(url: string, path: string): any {
-      return [
-        url,
-        '-f',
-        'ba',
-        '-N',
-        8,
-        '-o',
-        path,
-      ]
-    }
-
-    buildYtdlpSearchOptions(text: string): any {
-      return [
-        '--skip-download',
-        'ytsearch1:' + text,
-        '--get-id'
-      ]
     }
 
     /* This function triggers if a youtube link is used instead of searching by name
@@ -481,7 +463,7 @@ class Player {
     */
     async fromLink(int: any, url: string): Promise<MusicDetails[]> {
       const path = `./tmp/${randomId()}.ogg`;
-      const options = this.buildYtdlpOptions(url, path);
+      const options = buildYtdlpOptions(OptionType.DOWNLOAD, { url, path });
 
       //over here, we will control how many files we download in a list. if the list is more than 10, we stop "pre-downloading"
       let downloadPromise: any = ytDlpWrap.execPromise(options)
@@ -531,12 +513,12 @@ class Player {
     */
     async fromSearch(int: ChatInputCommandInteraction<CacheType>, text: string): Promise<MusicDetails[]> {
       // assuming that user wants to search if no youtube url exists
-      let query = text.trim()
-      let searchOptions = this.buildYtdlpSearchOptions(query)
+      const query = text.trim()
+      const options = buildYtdlpOptions(OptionType.SEARCH, { query })
 
-      let msg = await int.channel.send("Searching for the video...")
+      const msg = await int.channel.send("Searching for the video...")
 
-      let searchId = await ytDlpWrap.execPromise(searchOptions)
+      let searchId = await ytDlpWrap.execPromise(options)
 
       msg.delete()
 
@@ -563,11 +545,8 @@ class Player {
         return songInfo
       }
 
-      let ytdlpInfo = await ytDlpWrap.execPromise([
-        url,
-        '--dump-json',
-        '--skip-download'
-      ])
+      const options = buildYtdlpOptions(OptionType.DETAILS)
+      const ytdlpInfo = await ytDlpWrap.execPromise(options)
 
       const info = JSON.parse(ytdlpInfo)
 
