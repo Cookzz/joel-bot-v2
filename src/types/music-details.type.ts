@@ -10,7 +10,7 @@ export interface MusicDetails {
     details: AdditionalDetails,
     member: string,
     channel: Channel,
-    voice: string
+    voice: string | null
 }
 
 interface AdditionalDetails {

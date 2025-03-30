@@ -13,7 +13,7 @@ import ytdlCore from '@distube/ytdl-core'
 import { existsSync, rmSync } from 'node:fs'
 import Message from './message'
 
-import { getUUID, randomId } from './utils/common.util';
+import { getUUID, randomId, tryCatch } from './utils/common.util';
 import type { MusicDetails } from './types/music-details.type';
 import { YOUTUBE_REGEX } from './constant';
 import { getYtdlpExecutableName } from './utils/config.util';
@@ -335,19 +335,21 @@ class Player {
 
       //This one just makes sure user is in voice channel
       if (currentChannel?.id && currentChannel?.guild?.id && currentChannel?.guild?.voiceAdapterCreator){
-        this.currentConnection = joinVoiceChannel({
+        const voiceChannel = joinVoiceChannel({
           channelId: currentChannel.id,
           guildId: currentChannel.guild.id,
           adapterCreator: currentChannel.guild.voiceAdapterCreator
         })
 
-        this.currentConnection.once(VoiceConnectionStatus.Disconnected, () => {
+        voiceChannel.once(VoiceConnectionStatus.Disconnected, () => {
           this.audioPlayer = createAudioPlayer()
           this.currentConnection = null
           this.setVoiceId(null)
         })
 
-        return this.currentConnection
+        this.currentConnection = voiceChannel
+
+        return voiceChannel
       }
 
       return null
@@ -398,7 +400,7 @@ class Player {
           this.allSongList = [];
           console.log('leaving here');
 
-          if (this.currentConnection !== null && this.songList.length === 0){
+          if (this.currentConnection !== null){
             this.currentConnection.disconnect()
           }
         }
@@ -499,9 +501,11 @@ class Player {
         hasDownloaded = false
       }
       
-      const [musicInfo, music] = await Promise.allSettled([ytdlCore.getInfo(url), downloadPromise])
-      const info = musicInfo?.value;
+      const [musicInfo, music] = await Promise.allSettled([this.fetchSongInfo(url), downloadPromise])
 
+      //todo: add a fallback here if possible if music info failed to fetch, otherwise it will crash by default
+
+      const info = musicInfo?.value;
       let no: number = (info.videoDetails.thumbnail.thumbnails.length)-1
       let sec: number = Number(info.videoDetails.lengthSeconds)
       let minutes = String(Math.floor((sec/ 60)))
@@ -558,6 +562,43 @@ class Player {
 
       return await this.fromLink(int, videoUrl)
     }
+
+    /* There is a bug right now: https://github.com/distubejs/ytdl-core/pull/233
+    Sometimes it can fetch, sometimes it can't. So one workaround we'll be doing is use ytdlCore first.
+    If no info is fetched, we will fallback to yt-dlp to do the work */
+    async fetchSongInfo(url: string){
+      const ytdlFetch = await tryCatch(ytdlCore.getInfo(url))
+
+      if (!ytdlFetch.error){
+        const songInfo = ytdlFetch.data
+
+        return songInfo
+      }
+
+      let ytdlpInfo = await ytDlpWrap.execPromise([
+        url,
+        '--dump-json',
+        '--skip-download'
+      ])
+
+      const info = JSON.parse(ytdlpInfo)
+
+      const formattedInfo = {
+        videoDetails: {
+          title: info.title,
+          author: {
+            name: info.uploader
+          },
+          thumbnail: {
+            thumbnails: info.thumbnails
+          },
+          lengthSeconds: info.duration
+        }
+      }
+
+      return formattedInfo
+    }
+
     /* Sub-functions */
 }
 
