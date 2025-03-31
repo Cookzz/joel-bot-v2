@@ -391,9 +391,7 @@ class Player {
           this.allSongList = [];
           console.log('leaving here');
 
-          if (this.currentConnection !== null){
-            this.leave()
-          }
+          this.leave()
         }
 
         //when a song ends, regardless, we check for pre-downloads since the array gets shifted anyway
