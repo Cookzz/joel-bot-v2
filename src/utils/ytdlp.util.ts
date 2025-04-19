@@ -20,15 +20,15 @@ export const buildYtdlpOptions = (options: OptionType, params?: any): String[] =
             ]
         case OptionType.DETAILS:
             return [
-                '--skip-download',
-                'ytsearch1:' + query,
-                '--get-id'
-            ]
-        case OptionType.SEARCH:
-            return [
                 url,
                 '--dump-json',
                 '--skip-download'
+            ]
+        case OptionType.SEARCH:
+            return [
+                '--skip-download',
+                'ytsearch1:' + query,
+                '--get-id'
             ]
         default:
             return []
