@@ -13,7 +13,7 @@ import ytdlCore from '@distube/ytdl-core'
 import { existsSync, rmSync } from 'node:fs'
 import Message from './message'
 
-import { getUUID, randomId, tryCatch } from './utils/common.util';
+import { cleanUrl, getUUID, randomId, tryCatch } from './utils/common.util';
 import type { MusicDetails } from './types/music-details.type';
 import { YOUTUBE_REGEX } from './constant';
 import { getYtdlpExecutableName } from './utils/config.util';
@@ -68,10 +68,16 @@ class Player {
       let isPlaylist = false;
       let list = null;
 
-      if (text.includes("list=")){
-        int.reply("Playlist not supported yet.")
+      /* Instead of disabling playlist, we will crop the link */
+      // if (text.includes("list=")){
+      //   int.reply("Playlist not supported yet.")
 
-        return
+      //   return
+      // }
+
+      // We still don't support playlist but we still allow individual links
+      if (text.includes("list=")){
+        text = cleanUrl(text)
       }
 
       //This is necessary so theres no "The application did not respond" error
@@ -452,6 +458,7 @@ class Player {
         });
       }
     }
+
 
     /* This function triggers if a youtube link is used instead of searching by name
         1. We create a path with any random id first and build the necessary options to download the video
