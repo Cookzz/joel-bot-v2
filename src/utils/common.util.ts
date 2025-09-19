@@ -42,6 +42,15 @@ export const formatDuration = (duration: number): string => {
     return hours > 0 ? `${hours}:${minsSecs}` : `00:${minsSecs}`;
 }
 
+export const cleanUrl = (text: string): string => {
+    const url = new URL(text)
+
+    url.searchParams.delete('list');
+    url.searchParams.delete('start_radio');
+
+    return url.toString()
+}
+
 type Success<T> = {
     data: T;
     error: null;
