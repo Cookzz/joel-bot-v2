@@ -10,10 +10,11 @@ import {
   VoiceConnectionStatus
 } from '@discordjs/voice';
 import ytdlCore from '@distube/ytdl-core'
+import { Innertube, UniversalCache } from 'youtubei.js';
 import { existsSync, rmSync } from 'node:fs'
 import Message from './message'
 
-import { cleanUrl, getUUID, randomId, tryCatch } from './utils/common.util';
+import { cleanUrl, getUUID, getYouTubeId, randomId, tryCatch } from './utils/common.util';
 import type { MusicDetails } from './types/music-details.type';
 import { YOUTUBE_REGEX } from './constant';
 import { getYtdlpExecutableName } from './utils/config.util';
@@ -22,6 +23,8 @@ import { buildYtdlpOptions, OptionType } from './utils/ytdlp.util';
 const YTDlpWrapper = require('yt-dlp-wrap-plus').default;
 
 const ytDlpWrap = new YTDlpWrapper(`./binaries/${getYtdlpExecutableName()}`);
+
+const innertube = await Innertube.create({ cache: new UniversalCache(true) });
 
 class Player {
     private readonly client;
@@ -465,7 +468,7 @@ class Player {
         2. We will fetch the video info + download the video into a mp4 file and wait for both to finish asynchronously
         3. Once downloaded, we create a MusicDetails object with the necessary information and return it
     */
-    async fromLink(int: any, url: string): Promise<MusicDetails[]> {
+    async fromLink(int: any, url: string, videoId?: string): Promise<MusicDetails[]> {
       const path = `./tmp/${randomId()}.ogg`;
       const options = buildYtdlpOptions(OptionType.DOWNLOAD, { url, path });
 
@@ -541,12 +544,23 @@ class Player {
     Sometimes it can fetch, sometimes it can't. So one workaround we'll be doing is use ytdlCore first.
     If no info is fetched, we will fallback to yt-dlp to do the work */
     async fetchSongInfo(url: string){
-      const ytdlFetch = await tryCatch(ytdlCore.getInfo(url))
+      const videoId = getYouTubeId(url)
 
-      if (!ytdlFetch.error){
-        const songInfo = ytdlFetch.data
+      const ytjsFetch = await this.getVideoInfo(videoId)
 
-        return songInfo
+      if (ytjsFetch){
+        return {
+          videoDetails: {
+            title: ytjsFetch.title,
+            author: {
+              name: ytjsFetch.author
+            },
+            thumbnail: {
+              thumbnails: ytjsFetch.thumbnail
+            },
+            lengthSeconds: ytjsFetch.duration
+          }
+        }
       }
 
       const options = buildYtdlpOptions(OptionType.DETAILS)
@@ -570,6 +584,18 @@ class Player {
       return formattedInfo
     }
 
+    async getVideoInfo(videoId: string) {
+      const videoInfo = await innertube.actions.execute('/player', {
+        // You can add any additional payloads here, and they'll merge with the default payload sent to InnerTube.
+        videoId,
+        client: 'YTMUSIC', // InnerTube client to use.
+        parse: true // tells YouTube.js to parse the response (not sent to InnerTube).
+      });
+
+      console.log("get video info", videoInfo)
+
+      return videoInfo.video_details ?? null;
+    }
     /* Sub-functions */
 }
 
