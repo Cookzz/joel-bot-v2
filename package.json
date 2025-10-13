@@ -31,6 +31,7 @@
     "yt-dlp-wrap-plus": "^2.3.20"
   },
   "resolutions": {
-    "http-cookie-agent": "^6.0.8"
+    "http-cookie-agent": "^6.0.8",
+    "brace-expansion": "^1.1.12"
   }
 }
