@@ -545,30 +545,28 @@ class Player {
     If no info is fetched, we will fallback to yt-dlp to do the work */
     async fetchSongInfo(url: string){
       const videoId = getYouTubeId(url)
+      const ytjsInfo = await this.getVideoInfo(videoId)
 
-      const ytjsFetch = await this.getVideoInfo(videoId)
-
-      if (ytjsFetch){
+      if (ytjsInfo){
         return {
           videoDetails: {
-            title: ytjsFetch.title,
+            title: ytjsInfo.title,
             author: {
-              name: ytjsFetch.author
+              name: ytjsInfo.author
             },
             thumbnail: {
-              thumbnails: ytjsFetch.thumbnail
+              thumbnails: ytjsInfo.thumbnail
             },
-            lengthSeconds: ytjsFetch.duration
+            lengthSeconds: ytjsInfo.duration
           }
         }
       }
 
       const options = buildYtdlpOptions(OptionType.DETAILS)
       const ytdlpInfo = await ytDlpWrap.execPromise(options)
-
       const info = JSON.parse(ytdlpInfo)
 
-      const formattedInfo = {
+      return {
         videoDetails: {
           title: info.title,
           author: {
@@ -580,19 +578,14 @@ class Player {
           lengthSeconds: info.duration
         }
       }
-
-      return formattedInfo
     }
 
     async getVideoInfo(videoId: string) {
       const videoInfo = await innertube.actions.execute('/player', {
-        // You can add any additional payloads here, and they'll merge with the default payload sent to InnerTube.
         videoId,
-        client: 'YTMUSIC', // InnerTube client to use.
-        parse: true // tells YouTube.js to parse the response (not sent to InnerTube).
+        client: 'YTMUSIC',
+        parse: true
       });
-
-      console.log("get video info", videoInfo)
 
       return videoInfo.video_details ?? null;
     }
