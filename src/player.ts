@@ -9,7 +9,6 @@ import {
   StreamType,
   VoiceConnectionStatus
 } from '@discordjs/voice';
-import ytdlCore from '@distube/ytdl-core'
 import { Innertube, UniversalCache } from 'youtubei.js';
 import { existsSync, rmSync } from 'node:fs'
 import Message from './message'
@@ -581,13 +580,15 @@ class Player {
     }
 
     async getVideoInfo(videoId: string) {
-      const videoInfo = await innertube.actions.execute('/player', {
-        videoId,
-        client: 'YTMUSIC',
-        parse: true
-      });
+      const innerTubeRes = await tryCatch(innertube.getInfo(videoId))
 
-      return videoInfo.video_details ?? null;
+      const { data, error } = innerTubeRes
+
+      if (error){
+        return null
+      }
+
+      return data.basic_info ?? null
     }
     /* Sub-functions */
 }
