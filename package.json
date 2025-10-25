@@ -23,11 +23,11 @@
     "@discordjs/opus": "^0.10.0",
     "@discordjs/voice": "^0.18.0",
     "@snazzah/davey": "^0.1.7",
-    "discord.js": "^14.23.2",
+    "discord.js": "^14.24.0",
     "ffmpeg": "^0.0.4",
     "ffmpeg-static": "^5.2.0",
     "sodium-native": "^5.0.9",
-    "youtubei.js": "^16.0.0",
+    "youtubei.js": "^16.0.1",
     "yt-dlp-wrap-plus": "^2.3.20"
   },
   "resolutions": {
