@@ -1,16 +1,13 @@
 import { ChatInputCommandInteraction, Client, type CacheType } from 'discord.js';
 import Player from './player';
-import Message from './message'
 import { getVoiceChannel, validateInput } from './utils/host.util';
 import type { Commands } from './types/command.type';
 
 class Host {
-    private readonly client: Client
     private readonly player: Player
     private readonly commands: Commands
 
     constructor(client: Client) {
-        this.client = client
         this.player = new Player(client)
 
         this.commands = {
@@ -34,13 +31,19 @@ class Host {
         in order to make value fetching universal among all the commands
         we also stringify number into a string in order to take advantage of discord side validation
     */
-    async onCommand(interaction: ChatInputCommandInteraction<CacheType>, command: string) {
+    async onCommand(interaction: ChatInputCommandInteraction<CacheType>, command: string): Promise<void> {
         const text = validateInput(interaction)
+
+        //handle an edge case
+        if (!this.commands?.[command]){
+            await interaction.reply("Command does not exist")
+            return
+        }
         
         await this.commands[command](interaction, text)
     }
 
-    async addMusic(int: ChatInputCommandInteraction<CacheType>, text: string){
+    async addMusic(int: ChatInputCommandInteraction<CacheType>, text: string): Promise<void> {
         const voice = getVoiceChannel(int)
         const currentVoiceId = this.player.getVoiceId()
         if (currentVoiceId){

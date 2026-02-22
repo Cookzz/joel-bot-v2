@@ -1,23 +1,26 @@
 import { ChatInputCommandInteraction, Client, EmbedBuilder, type CacheType } from 'discord.js'
-import { 
-  joinVoiceChannel, 
+import {
+  joinVoiceChannel,
   createAudioPlayer,
-  VoiceConnection, 
+  VoiceConnection,
   AudioPlayer,
   createAudioResource,
   AudioPlayerStatus,
   StreamType,
-  VoiceConnectionStatus
+  VoiceConnectionStatus,
+  AudioPlayerError
 } from '@discordjs/voice';
 import { Innertube, UniversalCache } from 'youtubei.js';
 import { existsSync, rmSync } from 'node:fs'
 import Message from './message'
 
-import { cleanUrl, getUUID, getYouTubeId, randomId, tryCatch } from './utils/common.util';
+import { cleanUrl, getUUID, getYouTubeId, getYoutubePlaylistId, randomId, tryCatch } from './utils/common.util';
 import type { MusicDetails } from './types/music-details.type';
 import { YOUTUBE_REGEX } from './constant';
 import { getYtdlpExecutableName } from './utils/config.util';
 import { buildYtdlpOptions, OptionType } from './utils/ytdlp.util';
+import type { BasicInfo } from './types/youtubei.type';
+import type { Thumbnails, VideoDetails } from './types/video-details.type';
 
 const YTDlpWrapper = require('yt-dlp-wrap-plus').default;
 
@@ -42,8 +45,8 @@ class Player {
         this.init()
     }
 
-    private init(){
-      this.audioPlayer.addListener('stateChange', (oldState, newState)=>{
+    private init(): void {
+      this.audioPlayer.addListener('stateChange', (oldState: any, newState: any)=>{
         this.currentBotState = newState.status
         //here, when the audio player is in an idle state, we will just assume the music has ended
         if (newState.status === 'idle') {
@@ -51,38 +54,48 @@ class Player {
         }
       })
 
-      this.audioPlayer.on('error', error => {
+      this.audioPlayer.on('error', (error: AudioPlayerError) => {
         console.log(error)
         this.playYoutube()
       })
     }
 
-    public setVoiceId(id: any){
+    public setVoiceId(id: string | null): void {
       this.currentVoiceID = id
     }
 
-    public getVoiceId(): any{
+    public getVoiceId(): string | null {
       return this.currentVoiceID
     }
 
     /* Command-based functions */
-    async add(int: ChatInputCommandInteraction<CacheType>, text: string){
-      let isPlaylist = false;
-      let list = null;
-
-      /* Instead of disabling playlist, we will crop the link */
-      // if (text.includes("list=")){
-      //   int.reply("Playlist not supported yet.")
-
-      //   return
-      // }
-
-      // We still don't support playlist but we still allow individual links
+    async add(int: ChatInputCommandInteraction<CacheType>, text: string): Promise<void> {
+      // /* Instead of disabling playlist, we will crop the link */
       if (text.includes("list=")){
-        text = cleanUrl(text)
+        this.processPlaylist(int, text)
+      } else {
+        this.processSingle(int, text)
       }
 
+      // We still don't support playlist but we still allow individual links
+      // if (text.includes("list=")){
+      //   text = cleanUrl(text)
+      // }
+    }
+
+    async processPlaylist(int: ChatInputCommandInteraction<CacheType>, text: string): Promise<void> {
+        const playlistId = getYoutubePlaylistId(text)
+        worker.postMessage(playlistId);
+        worker.onmessage = event => {
+          console.log(event.data);
+        };
+
+        return
+    }
+
+    async processSingle(int: ChatInputCommandInteraction<CacheType>, text: string): Promise<void> {
       //This is necessary so theres no "The application did not respond" error
+      let list = null;
       const addingMsg = await int.reply("Adding your music...")
 
       if (text.match(YOUTUBE_REGEX)){
@@ -91,24 +104,24 @@ class Player {
         //we will assume that its a search query
         list = await this.fromSearch(int, text)
       }
-      
+
       this.songList = this.songList.concat(list)
       this.allSongList = this.allSongList.concat(list)
 
       addingMsg.delete()
 
-      if (this.songList.length == 1 && !isPlaylist) {
-          this.play()
+      if (this.songList.length == 1) {
+        this.play()
       }
     }
 
-    play(){
-      if (this.songList.length > 0 && this.songList[0].type == "youtube") {
+    play(): void {
+      if (this.songList.length > 0 && this.songList?.[0]?.type == "youtube") {
         this.playYoutube();
       }
     }
 
-    skip(int: ChatInputCommandInteraction<CacheType>){
+    skip(int: ChatInputCommandInteraction<CacheType>): void {
       if (this.songList.length === 0){
         int.reply("No song to skip.")
 
@@ -119,8 +132,8 @@ class Player {
 
       this.songEnd()
     }
-    
-    pause(int: ChatInputCommandInteraction<CacheType>){
+
+    pause(int: ChatInputCommandInteraction<CacheType>): void {
       if (this.songList.length === 0){
         int.reply("No song to pause.")
         return
@@ -131,8 +144,8 @@ class Player {
         int.reply("Paused song.")
       }
     }
-    
-    resume(int: ChatInputCommandInteraction<CacheType>){
+
+    resume(int: ChatInputCommandInteraction<CacheType>): void {
       if (this.songList.length === 0){
         int.reply("No song to resume.")
         return
@@ -144,7 +157,7 @@ class Player {
       }
     }
 
-    clear(int: ChatInputCommandInteraction<CacheType>){
+    clear(int: ChatInputCommandInteraction<CacheType>): void {
       const songListLength = this.songList.length
 
       if (this.songList.length < 2){
@@ -166,7 +179,7 @@ class Player {
       }
     }
 
-    leave(int?: ChatInputCommandInteraction<CacheType>){
+    leave(int?: ChatInputCommandInteraction<CacheType>): void {
       if (this.currentVoiceID){
         this.audioPlayer.stop(true)
         if (this.currentConnection){
@@ -179,7 +192,7 @@ class Player {
         this.currentConnection = null
         this.currentVoiceID = null
         this.currentBotState = "idle" //we assume its currently idle
-        
+
         this.setVoiceId(null)
 
         if (int){
@@ -188,7 +201,7 @@ class Player {
       }
     }
 
-    loop(int: ChatInputCommandInteraction<CacheType>){
+    loop(int: ChatInputCommandInteraction<CacheType>): void {
       const loopState = !this.willLoop
       this.willLoop = loopState
 
@@ -198,8 +211,13 @@ class Player {
     }
 
     //because 2 fields are required, we will assume there will always be 2 fields
-    move(int: ChatInputCommandInteraction<CacheType>, text: string){
+    move(int: ChatInputCommandInteraction<CacheType>, text: string): void {
       const fromToList = text.split(',')
+
+      if (!fromToList?.[0] || !fromToList?.[1]){
+        int.reply("Invalid position")
+        return
+      }
 
       const fromPosition = parseInt(fromToList[0])
       const toPosition = parseInt(fromToList[1])
@@ -213,20 +231,31 @@ class Player {
         return
       }
 
-      const songDetails = this.songList[fromPosition]
-
-      let itemRemoved = this.songList.splice(fromPosition, 1) // assign the removed item as an array
-      this.songList.splice(toPosition, 0, itemRemoved[0]) // insert itemRemoved into the target index
+      const itemRemoved = this.songList.splice(fromPosition, 1)[0] // assign the removed item as an array
+      if (!itemRemoved){
+        int.reply(`Nothing was removed.`)
+        return
+      }
+      
+      this.songList.splice(toPosition, 0, itemRemoved) // insert itemRemoved into the target index
 
       const allFromPosition = fromPosition + (this.allSongList.length - this.songList.length)
       const allToPosition = toPosition + (this.allSongList.length - this.songList.length)
 
-      this.allSongList.splice(allToPosition, 0, this.allSongList.splice(allFromPosition, 1)[0])
+      const itemRemovedFromAll = this.allSongList.splice(allFromPosition, 1)[0]
+      if (!itemRemovedFromAll){
+        int.reply(`Nothing was removed.`)
+        return
+      }
 
-      int.reply(`Moved ${songDetails.details.title} to position ${toPosition}`)
+      this.allSongList.splice(allToPosition, 0, itemRemovedFromAll)
+
+      const songDetails = this.songList[fromPosition]
+
+      int.reply(`Moved ${songDetails?.details?.title ?? "Unknown Title"} to position ${toPosition}`)
     }
 
-    remove(int: ChatInputCommandInteraction<CacheType>, text: string){
+    remove(int: ChatInputCommandInteraction<CacheType>, text: string): void {
       const reg = new RegExp('^[0-9]*$')
 
       if (this.songList.length === 0){
@@ -255,10 +284,10 @@ class Player {
 
       this.songList.splice(songNo, 1)
 
-      int.reply(`Removed: ${removedSong.details.title}`)
+      int.reply(`Removed: ${removedSong?.details.title ?? "Unknown Song"}`)
     }
 
-    getQueue(int: ChatInputCommandInteraction<CacheType>, text: string){
+    getQueue(int: ChatInputCommandInteraction<CacheType>, text: string): void {
       const pageSize = 10
       const reg = new RegExp('^[0-9]*$')
 
@@ -293,12 +322,12 @@ class Player {
       int.reply({ embeds: [embed] })
     }
 
-    getHelp(int: ChatInputCommandInteraction<CacheType>){
+    getHelp(int: ChatInputCommandInteraction<CacheType>): void {
       const embed: EmbedBuilder = this.message.getCommandList()
       int.reply({ embeds: [embed] })
     }
 
-    checkSong(int: ChatInputCommandInteraction<CacheType>, text: string){
+    checkSong(int: ChatInputCommandInteraction<CacheType>, text: string): void {
       const reg = new RegExp('^[0-9]*$')
 
       if (this.songList.length === 0){
@@ -321,19 +350,29 @@ class Player {
         return
       }
 
-      const embed: EmbedBuilder = this.message.getSongInfo(this.songList[songNo])
+      const songDetails: MusicDetails | undefined = this.songList[songNo]
+      if (!songDetails){
+        int.reply("Song details are not found")
+        return
+      }
+
+      const embed: EmbedBuilder = this.message.getSongInfo(songDetails)
 
       int.reply({ embeds: [embed] })
     }
     /* Command-based functions */
 
     /* Sub-functions */
-    async joinVC(){
+    async joinVC(): Promise<VoiceConnection | null>{
       if (this.currentConnection){
         return this.currentConnection
       }
 
-      const currentChannel = await this.client.channels.fetch(this.songList[0].voice)
+      if (!this.songList?.[0]?.voice){
+        return null
+      }
+
+      const currentChannel: any = await this.client.channels.fetch(this.songList?.[0]?.voice)
 
       //This one just makes sure user is in voice channel
       if (currentChannel?.id && currentChannel?.guild?.id && currentChannel?.guild?.voiceAdapterCreator){
@@ -355,10 +394,10 @@ class Player {
       return null
     }
 
-    async playYoutube(){
+    async playYoutube(): Promise<void> {
       const connection = await this.joinVC()
 
-      if (connection){
+      if (connection && this.songList[0]){
         //subscribe to "audio player events"
         connection.subscribe(this.audioPlayer)
 
@@ -380,7 +419,7 @@ class Player {
       }
     }
 
-    songEnd(){
+    songEnd(): void {
         //remove song before removing the song that was done
         this.removeDownload()
 
@@ -406,10 +445,10 @@ class Player {
         this.toPreDownload();
     }
 
-    removeDownload(no?: number){
+    removeDownload(no?: number): void{
       const songNo = no ?? 0
 
-      if (!this.willLoop){
+      if (!this.willLoop && this.songList[songNo]){
         const finishedSongPath = this.songList[songNo].path;
 
         const fileExists = existsSync(finishedSongPath)
@@ -424,9 +463,9 @@ class Player {
     }
 
     /* Once loop is disabled, we: a) delete all the cached downloads up until the currently playing song */
-    processLoopData(loopEnabled: boolean){
+    processLoopData(loopEnabled: boolean): void{
       if (!loopEnabled && this.allSongList.length > this.songList.length){
-        const currentSong = this.songList[0]
+        const currentSong = this.songList[0] ?? { id: null }
         const currentIndex = this.allSongList.findIndex(s => s.id === currentSong.id)
 
         //here, we only deal with it up until the currently playing songs in the looping list
@@ -447,16 +486,18 @@ class Player {
     * a) the list is still bigger than 10 songs
     * b) if the 10th song has yet to "pre-download" when it reaches its turn
     */
-    toPreDownload(){
+    toPreDownload(): void {
       if (!(this.songList.length > 9)){
         return
       }
 
-      if (!this.songList[9].hasDownloaded){
+      if (this.songList[9] && !this.songList[9].hasDownloaded){
         const options = buildYtdlpOptions(OptionType.DOWNLOAD, { url: this.songList[9].url, path: this.songList[9].path });
 
         ytDlpWrap.exec(options).once('close', () => {
-          this.songList[9].hasDownloaded = true;
+          if (this.songList[9]){
+            this.songList[9].hasDownloaded = true;
+          }
         });
       }
     }
@@ -478,16 +519,26 @@ class Player {
         downloadPromise = Promise.resolve()
         hasDownloaded = false
       }
-      
+
       const [musicInfo, music] = await Promise.allSettled([this.fetchSongInfo(url), downloadPromise])
 
       //todo: add a fallback here if possible if music info failed to fetch, otherwise it will crash by default
+      if (musicInfo.status === 'rejected'){
+        int.channel.send("Unable to fetch details for the music. Skipping the song.")
+
+        return []
+      }
 
       const info = musicInfo?.value;
-      let no: number = (info.videoDetails.thumbnail.thumbnails.length)-1
-      let sec: number = Number(info.videoDetails.lengthSeconds)
-      let minutes = String(Math.floor((sec/ 60)))
-      let seconds = String(Math.floor((sec % 60)))
+      if (!info){
+        return []
+      }
+
+      const thumbnails: Thumbnails[] = info.videoDetails.thumbnail.thumbnails ?? []
+      const no: number = (thumbnails.length - 1)
+      const sec: number = Number(info.videoDetails.lengthSeconds)
+      const minutes: string = String(Math.floor((sec/ 60)))
+      const seconds: string = String(Math.floor((sec % 60)))
 
       int.channel.send(`**Added:** ${info.videoDetails.title}` +
       (
@@ -503,9 +554,9 @@ class Player {
         hasDownloaded,
         type: "youtube",
         details:{
-          title: info.videoDetails.title,
+          title: info.videoDetails.title ?? "Unknown Title",
           author: info.videoDetails.author,
-          thumbnail_url: info.videoDetails.thumbnail.thumbnails[no].url,
+          thumbnail_url: thumbnails[no]?.url ?? "",
           duration: minutes + ":" + seconds
         },
         member: int.member.displayName,
@@ -514,10 +565,10 @@ class Player {
       }]
     }
 
-    /* We use yt-dlp to search and get ONLY the youtube id then process it as if we're fetching it from a link 
+    /* We use yt-dlp to search and get ONLY the youtube id then process it as if we're fetching it from a link
     * One downside is that because we're processing almost 3 promises, searching takes a long time..
     */
-    async fromSearch(int: ChatInputCommandInteraction<CacheType>, text: string): Promise<MusicDetails[]> {
+    async fromSearch(int: any, text: string): Promise<MusicDetails[]> {
       // assuming that user wants to search if no youtube url exists
       const query = text.trim()
       const options = buildYtdlpOptions(OptionType.SEARCH, { query })
@@ -539,19 +590,22 @@ class Player {
       return await this.fromLink(int, videoUrl)
     }
 
-    /* There is a bug right now: https://github.com/distubejs/ytdl-core/pull/233
-    Sometimes it can fetch, sometimes it can't. So one workaround we'll be doing is use ytdlCore first.
-    If no info is fetched, we will fallback to yt-dlp to do the work */
-    async fetchSongInfo(url: string){
+    /* Migrated to youtubei.js, fairly reliable. Keeping yt-dlp as fallback if it fails to fetch. */
+    async fetchSongInfo(url: string): Promise<VideoDetails | null> {
       const videoId = getYouTubeId(url)
-      const ytjsInfo = await this.getVideoInfo(videoId)
+      if (!videoId){
+        return null
+      }
+
+      const ytjsInfo: BasicInfo | null = await this.getVideoInfo(videoId)
 
       if (ytjsInfo){
         return {
           videoDetails: {
             title: ytjsInfo.title,
             author: {
-              name: ytjsInfo.author
+              name: ytjsInfo.author,
+              channel_url: ytjsInfo.channel?.url
             },
             thumbnail: {
               thumbnails: ytjsInfo.thumbnail
@@ -579,7 +633,7 @@ class Player {
       }
     }
 
-    async getVideoInfo(videoId: string) {
+    async getVideoInfo(videoId: string): Promise<BasicInfo | null> {
       const innerTubeRes = await tryCatch(innertube.getInfo(videoId))
 
       const { data, error } = innerTubeRes

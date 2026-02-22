@@ -21,6 +21,6 @@ interface AdditionalDetails {
 }
 
 interface AuthorDetails {
-    name: string,
-    channel_url: string
+    name?: string,
+    channel_url?: string
 }

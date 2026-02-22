@@ -1,3 +1,5 @@
+import { YOUTUBE_ID_REGEX } from "../constant";
+
 export const pad = (number: number): string => {
     return `${number}`.slice(-2);
 }
@@ -20,14 +22,14 @@ export const getUUID = (length: number = 16): number => {
 }
 
 export const getDuration = (durations: string[]): string => {
-    const totalDuration = sumDurations(durations)
+    const totalDuration: number = sumDurations(durations)
 
     return formatDuration(totalDuration)
 }
 
 export const sumDurations = (durations: string[]): number => {
-    return durations.reduce((sum, string) => {
-        let mins, secs;
+    return durations.reduce((sum: number, string: string) => {
+        let mins: any, secs: any;
         [mins, secs] = string.split(":").slice(-2).map(n => parseInt(n, 10));
         return sum + mins * 60 + secs;
     }, 0);
@@ -43,7 +45,7 @@ export const formatDuration = (duration: number): string => {
 }
 
 export const cleanUrl = (text: string): string => {
-    const url = new URL(text)
+    let url = new URL(text)
 
     url.searchParams.delete('list');
     url.searchParams.delete('start_radio');
@@ -51,9 +53,22 @@ export const cleanUrl = (text: string): string => {
     return url.toString()
 }
 
-export const getYouTubeId = (url: string) => {
-    const arr = url.split(/(vi\/|v%3D|v=|\/v\/|youtu\.be\/|\/embed\/)/);
-    return undefined !== arr[2] ? arr[2].split(/[^\w-]/i)[0] : arr[0];
+export const getYouTubeId = (url: string): string => {
+    const arr: string[] = url.split(YOUTUBE_ID_REGEX);
+    
+    let youtubeId: string = ""
+    if (arr[2]){
+        youtubeId = arr[2].split(/[^\w-]/i)[0] ?? ""
+    } else if (arr[0]){
+        youtubeId = arr[0]
+    }
+
+    return youtubeId
+}
+
+export const getYoutubePlaylistId = (url: string): string | null => { 
+    const match = url.match(/[&?]?list=([a-z0-9_-]+)/i);
+    return match?.[1] ?? null
 }
 
 type Success<T> = {

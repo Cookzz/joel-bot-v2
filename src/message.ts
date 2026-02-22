@@ -2,20 +2,12 @@ import { EmbedBuilder, type APIEmbedField, type APIEmbedFooter } from 'discord.j
 import type { MusicDetails } from "./types/music-details.type";
 import { getDuration } from "./utils/common.util";
 import COMMANDS from './commands';
-
-const quoteList = [
-  "Why lah bro",
-  "ER Diagram is my life",
-  "Love, Joel Mathew",
-  "Hi. I am Joel.",
-  "Invaded by ERDark spirit Joel Mathew"
-];
+import { QUOTE_LIST, BOT_NAME } from './constant';
 
 class Message {
     public getQueueList(list: MusicDetails[], pageNo: number): EmbedBuilder{
-      const j = "Joel Bot"
-      const quoteNo = Math.floor((Math.random() * quoteList.length))
-      const q = quoteList[quoteNo]
+      const quoteNo = Math.floor((Math.random() * QUOTE_LIST.length))
+      const q = QUOTE_LIST[quoteNo]
 
       const pageSize = 10
       const maxPage = Math.ceil(list.length / pageSize);
@@ -23,7 +15,7 @@ class Message {
       const durationList = list.map((song)=>(song.details.duration))
       const duration = getDuration(durationList)
 
-      const currentSong = `${list[0].details.title}\n**Requested By:** ${list[0].member}`
+      const currentSong = list?.[0] ? `${list[0].details.title}\n**Requested By:** ${list[0].member}` : "Unknown"
 
       const fields: APIEmbedField[] = [{
         name: "Currently Playing:",
@@ -56,7 +48,7 @@ class Message {
       }
 
       let embedded = new EmbedBuilder()
-                          .setAuthor({ name: `${j} - ${q}`})
+                          .setAuthor({ name: `${BOT_NAME} - ${q}`})
                           .setColor(6910463)
                           .addFields(fields)
                           .setFooter(footer)
@@ -66,19 +58,19 @@ class Message {
     }
 
     public getSongInfo(songInfo: MusicDetails): EmbedBuilder{
-      const j = "Joel Bot"
-      const quoteNo = Math.floor((Math.random() * quoteList.length))
-      const q = quoteList[quoteNo]
-      const thumbnailUrl = songInfo?.details?.thumbnail_url ?? null
+      const quoteNo: number = Math.floor((Math.random() * QUOTE_LIST.length))
+      const q: string = QUOTE_LIST[quoteNo] ?? ""
+      const thumbnailUrl: string = songInfo?.details?.thumbnail_url ?? null
+      const author: string = songInfo.details.author.name ?? "Unknown"
 
       const fields: APIEmbedField[] = [
-        { name: "Author: ", value: songInfo.details.author.name, inline: false },
+        { name: "Author: ", value: author, inline: false },
         { name: "Video Duration: ", value: songInfo.details.duration, inline: false },
         { name: "Requested By: ", value: songInfo.member, inline: false }
       ]
 
       let embedded = new EmbedBuilder()
-                          .setAuthor({ name: `${j} - ${q}`})
+                          .setAuthor({ name: `${BOT_NAME} - ${q}`})
                           .setTitle(`${songInfo.details.title}`)
                           .setURL(songInfo.url)
                           .setColor(6910463)
@@ -92,16 +84,15 @@ class Message {
     }
 
     getCommandList(): EmbedBuilder {
-      const j = "Joel Bot"
-      const quoteNo = Math.floor((Math.random() * quoteList.length))
-      const q = quoteList[quoteNo]
+      const quoteNo = Math.floor((Math.random() * QUOTE_LIST.length))
+      const q = QUOTE_LIST[quoteNo]
 
       const fields: APIEmbedField[] = COMMANDS.map((cmd) => (
         { name: `/${cmd.name}`, value: cmd.description }
       ))
 
       let embedded = new EmbedBuilder()
-                          .setAuthor({ name: `${j} - ${q}`})
+                          .setAuthor({ name: `${BOT_NAME} - ${q}`})
                           .setTitle("Command List")
                           .setColor(6910463)
                           .addFields(fields)
