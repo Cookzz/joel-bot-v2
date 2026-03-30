@@ -26,6 +26,9 @@
     "noPropertyAccessFromIndexSignature": false,
 
     // Based on TS recommendation
-    "libReplacement": false
+    "libReplacement": false,
+
+    // Typescript 6+ config
+    "types": ["bun"]
   }
 }
