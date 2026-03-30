@@ -4,3 +4,4 @@ config-backup.json
 binaries/*
 tmp/*
 joelbot-*
+.vs/*
