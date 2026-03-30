@@ -11,6 +11,7 @@
     "build-windows": "bun build --compile --minify --target=bun-windows-x64 ./index.ts --outfile joelbot-windows-x64",
     "build-linux-arm": "bun build --compile --target=bun-linux-arm64 ./index.ts --outfile joelbot-linux-arm64",
     "build-linux": "bun build --compile --minify --target=bun-linux-x64 ./index.ts --outfile joelbot-linux-x64",
+    "build-linux2": "bun build --compile --target=bun-linux-x64-baseline ./index.ts --outfile joelbot-linux-x64-baseline",
     "build-all": "bun build-windows && bun build-linux-arm && bun build-linux"
   },
   "devDependencies": {
@@ -21,13 +22,13 @@
   },
   "dependencies": {
     "@discordjs/opus": "^0.10.0",
-    "@discordjs/voice": "^0.19.0",
-    "@snazzah/davey": "^0.1.10",
+    "@discordjs/voice": "^0.19.2",
+    "@snazzah/davey": "^0.1.11",
     "discord.js": "^14.25.1",
     "ffmpeg": "^0.0.4",
     "ffmpeg-static": "^5.3.0",
-    "sodium-native": "^5.0.10",
-    "youtubei.js": "^16.0.1",
+    "sodium-native": "^5.1.0",
+    "youtubei.js": "^17.0.1",
     "yt-dlp-wrap-plus": "^2.4.3"
   },
   "resolutions": {
