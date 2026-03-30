@@ -34,6 +34,7 @@
   "resolutions": {
     "http-cookie-agent": "^6.0.8",
     "brace-expansion": "^1.1.12",
-    "tar": "^7.5.13"
+    "tar": "^7.5.13",
+    "undici": "^6.24.1"
   }
 }
