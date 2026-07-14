@@ -4,7 +4,7 @@ export enum OptionType {
     DETAILS = "DETAILS"
 }
 
-export const buildYtdlpOptions = (options: OptionType, params?: any): String[] => {
+export const buildYtdlpOptions = (options: OptionType, params?: any): string[] => {
     const { url, path, query } = params
 
     switch (options) {
@@ -34,4 +34,3 @@ export const buildYtdlpOptions = (options: OptionType, params?: any): String[] =
             return []
     }
 }
-

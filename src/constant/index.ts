@@ -1,5 +1,6 @@
 export const YOUTUBE_REGEX: RegExp = /^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube(-nocookie)?\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|live\/|v\/)?)([\w\-]{11})((?:\?|\&)\S+)?$/;
 export const YOUTUBE_ID_REGEX: RegExp = /(vi\/|v%3D|v=|\/v\/|youtu\.be\/|\/embed\/)/
+export const NUMBER_ONLY_REGEX: RegExp = /^[0-9]*$/
 export const BOT_NAME: string = "Joel Bot" as const
 export const QUOTE_LIST: string[] = [
   "Why lah bro",

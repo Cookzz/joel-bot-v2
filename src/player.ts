@@ -8,17 +8,19 @@ import {
   AudioPlayerStatus,
   StreamType,
   VoiceConnectionStatus,
-  AudioPlayerError
+  AudioPlayerError,
+  type AudioPlayerState
 } from '@discordjs/voice';
 import { Innertube, UniversalCache } from 'youtubei.js';
 import { existsSync, rmSync } from 'node:fs'
-import Message from './message'
 
+import Message from './message'
 import { cleanUrl, getUUID, getYouTubeId, getYoutubePlaylistId, randomId, tryCatch } from './utils/common.util';
-import type { MusicDetails } from './types/music-details.type';
-import { YOUTUBE_REGEX } from './constant';
+import { NUMBER_ONLY_REGEX, YOUTUBE_REGEX } from './constant';
 import { getYtdlpExecutableName } from './utils/config.util';
 import { buildYtdlpOptions, OptionType } from './utils/ytdlp.util';
+
+import type { MusicDetails } from './types/music-details.type';
 import type { BasicInfo } from './types/youtubei.type';
 import type { Thumbnails, VideoDetails } from './types/video-details.type';
 
@@ -46,7 +48,7 @@ class Player {
     }
 
     private init(): void {
-      this.audioPlayer.addListener('stateChange', (oldState: any, newState: any)=>{
+      this.audioPlayer.on('stateChange', (oldState: AudioPlayerState, newState: AudioPlayerState)=>{
         this.currentBotState = newState.status
         //here, when the audio player is in an idle state, we will just assume the music has ended
         if (newState.status === 'idle') {
@@ -95,7 +97,7 @@ class Player {
 
     async processSingle(int: ChatInputCommandInteraction<CacheType>, text: string): Promise<void> {
       //This is necessary so theres no "The application did not respond" error
-      let list = null;
+      let list: MusicDetails[] = [];
       const addingMsg = await int.reply("Adding your music...")
 
       if (text.match(YOUTUBE_REGEX)){
@@ -202,7 +204,7 @@ class Player {
     }
 
     loop(int: ChatInputCommandInteraction<CacheType>): void {
-      const loopState = !this.willLoop
+      const loopState: boolean = !this.willLoop
       this.willLoop = loopState
 
       this.processLoopData(loopState)
@@ -212,15 +214,15 @@ class Player {
 
     //because 2 fields are required, we will assume there will always be 2 fields
     move(int: ChatInputCommandInteraction<CacheType>, text: string): void {
-      const fromToList = text.split(',')
+      const fromToList: string[] = text.split(',')
 
       if (!fromToList?.[0] || !fromToList?.[1]){
         int.reply("Invalid position")
         return
       }
 
-      const fromPosition = parseInt(fromToList[0])
-      const toPosition = parseInt(fromToList[1])
+      const fromPosition: number = parseInt(fromToList[0])
+      const toPosition: number = parseInt(fromToList[1])
 
       //position 0 is the currently playing song, we dont allow it to get replaced
       if (
@@ -231,18 +233,18 @@ class Player {
         return
       }
 
-      const itemRemoved = this.songList.splice(fromPosition, 1)[0] // assign the removed item as an array
+      const itemRemoved: MusicDetails | null = this.songList.splice(fromPosition, 1)[0] ?? null // assign the removed item as an array
       if (!itemRemoved){
         int.reply(`Nothing was removed.`)
         return
       }
-      
+
       this.songList.splice(toPosition, 0, itemRemoved) // insert itemRemoved into the target index
 
-      const allFromPosition = fromPosition + (this.allSongList.length - this.songList.length)
-      const allToPosition = toPosition + (this.allSongList.length - this.songList.length)
+      const allFromPosition: number = fromPosition + (this.allSongList.length - this.songList.length)
+      const allToPosition: number = toPosition + (this.allSongList.length - this.songList.length)
 
-      const itemRemovedFromAll = this.allSongList.splice(allFromPosition, 1)[0]
+      const itemRemovedFromAll: MusicDetails | null = this.allSongList.splice(allFromPosition, 1)[0] ?? null
       if (!itemRemovedFromAll){
         int.reply(`Nothing was removed.`)
         return
@@ -256,14 +258,12 @@ class Player {
     }
 
     remove(int: ChatInputCommandInteraction<CacheType>, text: string): void {
-      const reg = new RegExp('^[0-9]*$')
-
       if (this.songList.length === 0){
         int.reply("No songs to remove.")
         return
       }
 
-      if (!reg.test(text)){
+      if (!NUMBER_ONLY_REGEX.test(text)){
         int.reply("Not a valid input. Must be number only.")
         return
       }
@@ -288,8 +288,7 @@ class Player {
     }
 
     getQueue(int: ChatInputCommandInteraction<CacheType>, text: string): void {
-      const pageSize = 10
-      const reg = new RegExp('^[0-9]*$')
+      const pageSize: number = 10
 
       if (this.songList.length === 0){
         int.reply("No songs are playing at the moment.")
@@ -301,7 +300,7 @@ class Player {
         text = "1" //set to page one by default
       }
 
-      if (!reg.test(text)){
+      if (!NUMBER_ONLY_REGEX.test(text)){
         int.reply("Not a valid input. Must be number only.")
         return
       }
@@ -328,8 +327,6 @@ class Player {
     }
 
     checkSong(int: ChatInputCommandInteraction<CacheType>, text: string): void {
-      const reg = new RegExp('^[0-9]*$')
-
       if (this.songList.length === 0){
         int.reply("There is no song available to view.")
         return
@@ -339,7 +336,7 @@ class Player {
         text = "0" //set to zero by default if user didn't provide anything
       }
 
-      if (!reg.test(text)){
+      if (!NUMBER_ONLY_REGEX.test(text)){
         int.reply("Not a valid input. Must be number only.")
         return
       }
@@ -350,7 +347,7 @@ class Player {
         return
       }
 
-      const songDetails: MusicDetails | undefined = this.songList[songNo]
+      const songDetails: MusicDetails | null = this.songList[songNo] ?? null
       if (!songDetails){
         int.reply("Song details are not found")
         return
@@ -397,7 +394,7 @@ class Player {
     async playYoutube(): Promise<void> {
       const connection = await this.joinVC()
 
-      if (connection && this.songList[0]){
+      if (connection && this.songList[0]) {
         //subscribe to "audio player events"
         connection.subscribe(this.audioPlayer)
 
@@ -446,7 +443,7 @@ class Player {
     }
 
     removeDownload(no?: number): void{
-      const songNo = no ?? 0
+      const songNo: number = no ?? 0
 
       if (!this.willLoop && this.songList[songNo]){
         const finishedSongPath = this.songList[songNo].path;
@@ -509,8 +506,8 @@ class Player {
         3. Once downloaded, we create a MusicDetails object with the necessary information and return it
     */
     async fromLink(int: any, url: string, videoId?: string): Promise<MusicDetails[]> {
-      const path = `./tmp/${randomId()}.ogg`;
-      const options = buildYtdlpOptions(OptionType.DOWNLOAD, { url, path });
+      const path: string = `./tmp/${randomId()}.ogg`;
+      const options: string[] = buildYtdlpOptions(OptionType.DOWNLOAD, { url, path });
 
       //over here, we will control how many files we download in a list. if the list is more than 10, we stop "pre-downloading"
       let downloadPromise: any = ytDlpWrap.execPromise(options)
@@ -529,7 +526,7 @@ class Player {
         return []
       }
 
-      const info = musicInfo?.value;
+      const info: VideoDetails | null = musicInfo?.value;
       if (!info){
         return []
       }
