@@ -1,6 +1,6 @@
 node_modules
 config.json
-config-backup.json
+*.config.json
 binaries/*
 tmp/*
 joelbot-*
