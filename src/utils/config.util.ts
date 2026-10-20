@@ -11,7 +11,7 @@ export const getYtdlpExecutableName = (): string => {
     let fileName = executableName;
 
     if (isWin32) {
-        if (arch() === "x32") {
+        if (arch() === "ia32") {
             fileName += "_x86.exe"
         } else {
             fileName += ".exe"
