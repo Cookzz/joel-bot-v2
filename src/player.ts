@@ -70,19 +70,48 @@ class Player {
       return this.currentVoiceID
     }
 
+    public async checkConnection() {
+      const id = this.getVoiceId()
+
+      if (!id) {
+        console.log("Bot is no longer in voice call")
+        return
+      }
+
+      const voiceChannel = await this.client.channels.fetch(id);
+
+      if (!voiceChannel) {
+        console.log("Bot is no longer in any voice channel")
+        return
+      }
+
+      // here we just check
+      const membersInChannel = voiceChannel.members;
+      const memberNames = membersInChannel.filter(member => !member.user.bot).map(member => member.displayName)
+      const membersNo = memberNames.length
+
+      if (membersNo < 1) {
+        this.leave()
+      }
+    }
+
     /* Command-based functions */
     async add(int: ChatInputCommandInteraction<CacheType>, text: string): Promise<void> {
       // /* Instead of disabling playlist, we will crop the link */
-      if (text.includes("list=")){
-        this.processPlaylist(int, text)
-      } else {
-        this.processSingle(int, text)
-      }
 
       // We still don't support playlist but we still allow individual links
+      if (text.includes("list=")){
+        text = cleanUrl(text)
+      }
+      this.processSingle(int, text)
+
       // if (text.includes("list=")){
-      //   text = cleanUrl(text)
+      //   this.processPlaylist(int, text)
+      // } else {
+      //   this.processSingle(int, text)
       // }
+
+
     }
 
     async processPlaylist(int: ChatInputCommandInteraction<CacheType>, text: string): Promise<void> {
@@ -392,6 +421,8 @@ class Player {
     }
 
     async playYoutube(): Promise<void> {
+      await this.checkConnection()
+
       const connection = await this.joinVC()
 
       if (connection && this.songList[0]) {
