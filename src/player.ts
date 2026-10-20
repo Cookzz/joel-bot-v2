@@ -212,7 +212,8 @@ class Player {
 
     leave(int?: ChatInputCommandInteraction<CacheType>): void {
       if (this.currentVoiceID){
-        this.audioPlayer.stop(true)
+        this.audioPlayer.stop()
+
         if (this.currentConnection){
           this.currentConnection?.disconnect()
           this.currentConnection?.destroy()
