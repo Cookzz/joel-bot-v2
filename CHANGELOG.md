@@ -1,3 +1,22 @@
+## 0.3.0 (2026-10-22)
+* feature: add multithreading support ([b04b2e8](https://github.com/Cookzz/joel-bot-v2/commit/b04b2e81b90961e51a8609c379011a261b41b0ae))
+* fix: overwriting audio player breaks disconnect listener ([2d9cd3a](https://github.com/Cookzz/joel-bot-v2/commit/2d9cd3a33a583979a51d51b1eb293e78ddb87233))
+* chore: remove ky, changed sodium package to native ([719f3d0](https://github.com/Cookzz/joel-bot-v2/commit/719f3d023c740cf443047bbb901fec862f754d92))
+* chore: remove check for connection when song is empty ([c603631](https://github.com/Cookzz/joel-bot-v2/commit/c60363194a6e9a6ff1e56eab83718ea6ff2023b8))
+* fix: search crash due to flipped options ([3c259e5](https://github.com/Cookzz/joel-bot-v2/commit/3c259e574337cfcc910eddabc488ef68c22c17e5))
+* feature: deprecate ytdl-core for youtubei.js ([d656304](https://github.com/Cookzz/joel-bot-v2/commit/d65630410cfad3d6a6547a3e9f74390f6ee20c78))
+* bugfix: fetching video info causing crashes ([e274bbb](https://github.com/Cookzz/joel-bot-v2/commit/e274bbb0c00a4d69ad29b7589de2fa5dc66bcf17))
+* chore: improve type definition in codebase ([38fc244](https://github.com/Cookzz/joel-bot-v2/commit/38fc244a60789f79d701736b94b13ec778afc56a))
+* bugfix: upgrade @discordjs/voice to 0.19.0 ([45a2fd0](https://github.com/Cookzz/joel-bot-v2/commit/45a2fd09a211cac36e4666ea1eb19442da81c6f4))
+* chore: upgrade to typescript 7 ([254c10b](https://github.com/Cookzz/joel-bot-v2/commit/254c10beb135593f6eda86ee8fea9caaa254d996))
+* feature: leave if no user is in channel ([6315fe7](https://github.com/Cookzz/joel-bot-v2/commit/6315fe7863222a72af488752ae6ae985b2a19052))
+* fix: crash when leaving mid-playing music ([2c44c4a](https://github.com/Cookzz/joel-bot-v2/commit/2c44c4a6baa2a3c5542fd24efb3b1565bcbfbc2b))
+* feature: include support for playlist ([5404085](https://github.com/Cookzz/joel-bot-v2/commit/5404085c5756230ac39abf0baf6973debae3baa2))
+* fix: youtubei module cache issue ([f7ebd30](https://github.com/Cookzz/joel-bot-v2/commit/f7ebd3031b454249f781ae096eb6bb043bc1c045))
+* chore: include worker file into build ([71b2212](https://github.com/Cookzz/joel-bot-v2/commit/71b2212e1e6443130caee3ec429e0ce43b7f0c0d))
+* chore: change to opusscript ([40e5ad6](https://github.com/Cookzz/joel-bot-v2/commit/40e5ad6bd4e3d872e11ab0851c987782479873f7))
+
+
 ## 0.2.2 (2025-03-30)
 
 * fix: incorrect input validation ([0157987](https://github.com/Cookzz/joel-bot-v2/commit/01579872338af734782fed811832cde44a2284cb))
