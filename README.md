@@ -10,6 +10,8 @@ Originally, I wanted to just make it for myself to use on one server but i thoug
 
 So yeah, this bot suddenly went from a joke, a hobby then now a proper release.
 
+As of 22th October 2026, I think this bot is more or less "feature complete", however I will constantly maintain it as it is not bug-free either and if there are interesting new features I want to add, I will update the README file again. Otherwise no additional features are planned for now.
+
 # Pre-requisites for developers
 
 - Requires the `bun` package to run. Make sure you have it installed (https://bun.sh/).
@@ -76,22 +78,21 @@ Please note that it is highly recommended to store and run a binary in a separat
 - [X] Play songs via youtube link
 - [X] Play songs via search with name
 - [X] Supports other basic music bot functionality such as skip, pause, resume, etc.
-- [ ] Support playlists
+- [X] Support playlists
 - [X] Move songs (for example, from position 5 to 2)
 - [X] Remove songs from queue
 - [X] Fully clear an entire queue including downloads (if loop isn't enabled, so cached ones are safe)
 - [X] Get details of currently playing song
 - [X] Show queue list
 - [X] Add loop feature
-- [X] Leave voice call
+- [X] Leave voice call (properly)
  
 # TODO
-- Have a proper working playlist support (previous attempts bricked the bot)
-- Implement worker threads (multi-threading) so that playlists can be processed independently
 - Further refactoring (i have a headache just from my own code even though i'm the one who wrote it)
 
 # Notes
-- As of 15 March 2025, running on node v21.7.3 & v23.10.0 without any issues. Recommended node version but you can use any version you'd like, can't guarantee it works though.
+- As of 22 October 2026, running on node v21.7.3, v23.10.0 & v26.3.1 without any issues. Recommended node version but you can use any version you'd like, can't guarantee it works though.
+- If you want better performance, you can swap [opusscript](https://github.com/abalabahaha/opusscript/) back to [@discordjs/opus](https://github.com/discordjs/opus) but **Node v22 or lower is required due to lack of node-pre-gyp binaries available for linux**
 - You can leave binaries folder alone. In index.ts, we are downloading automatically to that folder for the required binaries, so if you want to use a different binary, just replace the ones in there with your own.
 - Leave tmp folder alone, its just used to store music temp files
 
