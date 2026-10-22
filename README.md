@@ -48,6 +48,23 @@ And then run the provided binary: https://github.com/Cookzz/joel-bot-v2/releases
 
 Please note that it is highly recommended to store and run a binary in a separate folder as it will create the necessary folders and download the required binaries to function.
 
+# Binaries
+
+Download the latest binary here (for whichever platform you are hosting on): https://github.com/Cookzz/joel-bot-v2/releases/latest
+
+For explanation, the binaries are prebuilt so that you can just run with just the executable + config.json file so that users will need to do minimal configuration required to get things running. Once you have the binary downloaded, just put it where you want and follow the instructions below:
+
+Windows: use either **Terminal** (comes with windows) or **Powershell** (any) and run: `.\joelbot-windows-x64.exe`
+
+Linux (on arm like raspberry pi): `sudo nohup ./joelbot-linux-arm64 &` 
+
+Linux (on x64 platform like a desktop): `sudo nohup ./joelbot-linux-x64 &`
+
+nohup is used to make sure that the bot runs independently even when the terminal is closed. You can remove that if you don't think its necessary.
+
+Feel free to also use things like virustotal or such to make sure these files aren't infected. Please don't run executables provided by a random stranger on the internet without verifying properly first.
+
+
 # Commands
 - **play**: Plays a song from YouTube (link and search supported, no playlist).
   - Usage: `/play <youtube link or name>`
