@@ -50,4 +50,21 @@ interface Thumbnail {
     width: number;
     height: number;
 }
+
+export interface PlaylistInfo {
+    subtitle: any;
+    author: any;
+    thumbnails: Thumbnail[];
+    total_items: string;
+    views: string;
+    last_updated: string;
+    can_share: boolean;
+    can_delete: boolean;
+    can_reorder: boolean;
+    is_editable: boolean;
+    privacy: string;
+    title?: string | undefined;
+    description?: string | undefined;
+    type?: string | undefined;
+}
 /* Types for youtubei.js */

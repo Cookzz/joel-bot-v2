@@ -5,3 +5,4 @@ binaries/*
 tmp/*
 joelbot-*
 .vs/*
+.youtube_cache

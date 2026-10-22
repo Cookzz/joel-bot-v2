@@ -11,7 +11,6 @@ import {
   AudioPlayerError,
   type AudioPlayerState
 } from '@discordjs/voice';
-import { Innertube, UniversalCache } from 'youtubei.js';
 import { existsSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 
@@ -24,12 +23,11 @@ import { buildYtdlpOptions, OptionType } from './utils/ytdlp.util';
 import type { MusicDetails } from './types/music-details.type';
 import type { BasicInfo } from './types/youtubei.type';
 import type { Thumbnails, VideoDetails } from './types/video-details.type';
+import { getPlaylistInfo, getVideoInfo } from './utils/innertube.util';
 
 const YTDlpWrapper = require('yt-dlp-wrap-plus').default;
 
 const ytDlpWrap = new YTDlpWrapper(`./binaries/${getYtdlpExecutableName()}`);
-
-const innertube = await Innertube.create({ cache: new UniversalCache(true, join(process.cwd(), ".youtube_cache")) });
 
 const worker = new Worker(new URL("worker.ts", import.meta.url).href);
 
@@ -113,9 +111,17 @@ class Player {
     }
 
     async processPlaylist(int: ChatInputCommandInteraction<CacheType>, text: string): Promise<void> {
-      const playlistId = getYoutubePlaylistId(text)
+      const playlistId: string | null = getYoutubePlaylistId(text)
+      if (!playlistId) {
+        await int.reply("Unable to fetch playlist id")
+        return
+      }
 
-      const msg = await int.reply("Playlist is being processed...")
+      const playlistInfo = await getPlaylistInfo(playlistId)
+      //this is not necessary but nice to have so we dont skip it
+      const playlistTitle = playlistInfo?.title ?? "Unknown title"
+
+      const msg = await int.reply(`**Added playlist: ${playlistTitle} to the queue`)
 
       let processedNo: number = 0
 
@@ -642,7 +648,7 @@ class Player {
         return null
       }
 
-      const ytjsInfo: BasicInfo | null = await this.getVideoInfo(videoId)
+      const ytjsInfo: BasicInfo | null = await getVideoInfo(videoId)
 
       if (ytjsInfo){
         return {
@@ -676,18 +682,6 @@ class Player {
           lengthSeconds: info.duration
         }
       }
-    }
-
-    async getVideoInfo(videoId: string): Promise<BasicInfo | null> {
-      const innerTubeRes = await tryCatch(innertube.getInfo(videoId))
-
-      const { data, error } = innerTubeRes
-
-      if (error){
-        return null
-      }
-
-      return data.basic_info ?? null
     }
     /* Sub-functions */
 }
