@@ -124,7 +124,7 @@ class Player {
       //this is not necessary but nice to have so we dont skip it
       const playlistTitle = playlistInfo?.title ?? "Unknown title"
 
-      const msg = await int.reply(`**Added playlist: ${playlistTitle} to the queue`)
+      const msg = await int.reply(`**Processing** playlist: ${playlistTitle} to the queue...`)
 
       let processedNo: number = 0
 
@@ -140,7 +140,7 @@ class Player {
 
         if (!event.data?.processing) {
           msg.delete()
-          int.channel.send(`Playlist processed - ${processedNo} music added.`)
+          int.channel.send(`**Added** playlist: ${playlistTitle} to queue, ${processedNo} music added.`)
         }
 
         if (this.songList.length == 1) {
