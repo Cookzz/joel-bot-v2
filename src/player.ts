@@ -16,7 +16,7 @@ import { join } from 'node:path'
 
 import Message from './message'
 import { cleanUrl, getUUID, getYouTubeId, getYoutubePlaylistId, randomId, tryCatch, tryCatchSync } from './utils/common.util';
-import { NUMBER_ONLY_REGEX, YOUTUBE_REGEX } from './constant';
+import { NUMBER_ONLY_REGEX, YOUTUBE_PLAYLIST_REGEX, YOUTUBE_REGEX } from './constant';
 import { getYtdlpExecutableName } from './utils/config.util';
 import { buildYtdlpOptions, OptionType } from './utils/ytdlp.util';
 
@@ -98,15 +98,18 @@ class Player {
 
     /* Command-based functions */
     async add(int: ChatInputCommandInteraction<CacheType>, text: string): Promise<void> {
-      if (text.includes("list=")) {
+      if (YOUTUBE_PLAYLIST_REGEX.test(text)) {
         const result = tryCatchSync(this.processPlaylist(int, text))
 
         if (result.error) {
           text = cleanUrl(text)
           this.processSingle(int, text)
         }
-      } else {
+      } else if (YOUTUBE_REGEX.test(text)) {
         this.processSingle(int, text)
+      } else {
+        await int.reply("An invalid URL has been given.")
+        return;
       }
     }
 
