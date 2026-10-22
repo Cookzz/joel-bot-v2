@@ -13,6 +13,7 @@ import {
 } from '@discordjs/voice';
 import { Innertube, UniversalCache } from 'youtubei.js';
 import { existsSync, rmSync } from 'node:fs'
+import { join } from 'node:path'
 
 import Message from './message'
 import { cleanUrl, getUUID, getYouTubeId, getYoutubePlaylistId, randomId, tryCatch, tryCatchSync } from './utils/common.util';
@@ -28,7 +29,7 @@ const YTDlpWrapper = require('yt-dlp-wrap-plus').default;
 
 const ytDlpWrap = new YTDlpWrapper(`./binaries/${getYtdlpExecutableName()}`);
 
-const innertube = await Innertube.create({ cache: new UniversalCache(true) });
+const innertube = await Innertube.create({ cache: new UniversalCache(true, join(process.cwd(), ".youtube_cache")) });
 
 const worker = new Worker(new URL("worker.ts", import.meta.url).href);
 
