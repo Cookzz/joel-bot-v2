@@ -34,13 +34,13 @@ export const sumDurations = (durations: string[]): number => {
         return sum + mins * 60 + secs;
     }, 0);
 }
-  
+
 export const formatDuration = (duration: number): string => {
     const hours = duration / 3600 | 0;
     const minutes = duration % 3600 / 60 | 0;
     const seconds = duration % 60;
     const minsSecs = `${pad(minutes)}:${pad(seconds)}`;
-  
+
     return hours > 0 ? `${hours}:${minsSecs}` : `00:${minsSecs}`;
 }
 
@@ -55,7 +55,7 @@ export const cleanUrl = (text: string): string => {
 
 export const getYouTubeId = (url: string): string => {
     const arr: string[] = url.split(YOUTUBE_ID_REGEX);
-    
+
     let youtubeId: string = ""
     if (arr[2]){
         youtubeId = arr[2].split(/[^\w-]/i)[0] ?? ""
@@ -66,7 +66,7 @@ export const getYouTubeId = (url: string): string => {
     return youtubeId
 }
 
-export const getYoutubePlaylistId = (url: string): string | null => { 
+export const getYoutubePlaylistId = (url: string): string | null => {
     const match = url.match(/[&?]?list=([a-z0-9_-]+)/i);
     return match?.[1] ?? null
 }
@@ -87,6 +87,16 @@ type Result<T, E = Error> = Success<T> | Failure<E>;
 export const tryCatch = async<T, E = Error>(promise: Promise<T>): Promise<Result<T, E>> => {
     try {
         const data = await promise;
+        return { data, error: null };
+    } catch (error) {
+        return { data: null, error: error as E };
+    }
+}
+
+// Main wrapper function
+export const tryCatchSync = <T, E = Error>(func: T): Result<T, E> => {
+    try {
+        const data = func;
         return { data, error: null };
     } catch (error) {
         return { data: null, error: error as E };

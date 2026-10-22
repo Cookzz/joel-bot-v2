@@ -3,9 +3,9 @@ export const getVoiceChannel = (interaction: any) => {
 }
 
 export const validateInput = (interaction: any) => {
-    let text = interaction.options.getString('text') ?? 
+    let text = interaction.options.getString('text') ??
                interaction.options.getNumber('number') ?? null;
-    let secondaryText = interaction.options.getString('text2') ?? 
+    let secondaryText = interaction.options.getString('text2') ??
                         interaction.options.getNumber('number2') ?? null;
 
     if (text && typeof text === "number"){

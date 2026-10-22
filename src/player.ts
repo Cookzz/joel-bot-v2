@@ -15,7 +15,7 @@ import { Innertube, UniversalCache } from 'youtubei.js';
 import { existsSync, rmSync } from 'node:fs'
 
 import Message from './message'
-import { cleanUrl, getUUID, getYouTubeId, getYoutubePlaylistId, randomId, tryCatch } from './utils/common.util';
+import { cleanUrl, getUUID, getYouTubeId, getYoutubePlaylistId, randomId, tryCatch, tryCatchSync } from './utils/common.util';
 import { NUMBER_ONLY_REGEX, YOUTUBE_REGEX } from './constant';
 import { getYtdlpExecutableName } from './utils/config.util';
 import { buildYtdlpOptions, OptionType } from './utils/ytdlp.util';
@@ -29,6 +29,8 @@ const YTDlpWrapper = require('yt-dlp-wrap-plus').default;
 const ytDlpWrap = new YTDlpWrapper(`./binaries/${getYtdlpExecutableName()}`);
 
 const innertube = await Innertube.create({ cache: new UniversalCache(true) });
+
+const worker = new Worker(new URL("worker.ts", import.meta.url).href);
 
 class Player {
     private readonly client;
@@ -97,31 +99,44 @@ class Player {
 
     /* Command-based functions */
     async add(int: ChatInputCommandInteraction<CacheType>, text: string): Promise<void> {
-      // /* Instead of disabling playlist, we will crop the link */
+      if (text.includes("list=")) {
+        const result = tryCatchSync(this.processPlaylist(int, text))
 
-      // We still don't support playlist but we still allow individual links
-      if (text.includes("list=")){
-        text = cleanUrl(text)
+        if (result.error) {
+          text = cleanUrl(text)
+          this.processSingle(int, text)
+        }
+      } else {
+        this.processSingle(int, text)
       }
-      this.processSingle(int, text)
-
-      // if (text.includes("list=")){
-      //   this.processPlaylist(int, text)
-      // } else {
-      //   this.processSingle(int, text)
-      // }
-
-
     }
 
     async processPlaylist(int: ChatInputCommandInteraction<CacheType>, text: string): Promise<void> {
-        const playlistId = getYoutubePlaylistId(text)
-        worker.postMessage(playlistId);
-        worker.onmessage = event => {
-          console.log(event.data);
-        };
+      const playlistId = getYoutubePlaylistId(text)
 
-        return
+      const msg = await int.reply("Playlist is being processed...")
+
+      let processedNo: number = 0
+
+      worker.postMessage(playlistId);
+      worker.onmessage = event => {
+        if (event.data?.details) {
+          const musicDetails: any = Object.assign({}, event.data.details, { member: int?.member?.displayName, channel: int.channel, voice: this.currentVoiceID })
+          this.songList.push(musicDetails)
+          this.allSongList.push(musicDetails)
+
+          processedNo++
+        }
+
+        if (!event.data?.processing) {
+          msg.delete()
+          int.channel.send(`Playlist processed - ${processedNo} music added.`)
+        }
+
+        if (this.songList.length == 1) {
+          this.play()
+        }
+      };
     }
 
     async processSingle(int: ChatInputCommandInteraction<CacheType>, text: string): Promise<void> {
@@ -537,7 +552,7 @@ class Player {
         2. We will fetch the video info + download the video into a mp4 file and wait for both to finish asynchronously
         3. Once downloaded, we create a MusicDetails object with the necessary information and return it
     */
-    async fromLink(int: any, url: string, videoId?: string): Promise<MusicDetails[]> {
+    async fromLink(int: any, url: string): Promise<MusicDetails[]> {
       const path: string = `./tmp/${randomId()}.ogg`;
       const options: string[] = buildYtdlpOptions(OptionType.DOWNLOAD, { url, path });
 
