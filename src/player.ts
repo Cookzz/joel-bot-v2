@@ -8,22 +8,22 @@ import {
   AudioPlayerStatus,
   StreamType,
   VoiceConnectionStatus,
-  AudioPlayerError,
-  type AudioPlayerState
+  AudioPlayerError
 } from '@discordjs/voice';
 import { existsSync, rmSync } from 'node:fs'
-import { join } from 'node:path'
 
-import Message from './message'
-import { cleanUrl, getUUID, getYouTubeId, getYoutubePlaylistId, randomId, tryCatch, tryCatchSync } from './utils/common.util';
 import { NUMBER_ONLY_REGEX, YOUTUBE_PLAYLIST_REGEX, YOUTUBE_REGEX } from './constant';
+import Message from './message'
+
+import { cleanUrl, getUUID, getYouTubeId, getYoutubePlaylistId, randomId, tryCatch, tryCatchSync } from './utils/common.util';
 import { getYtdlpExecutableName } from './utils/config.util';
 import { buildYtdlpOptions, OptionType } from './utils/ytdlp.util';
+import { getPlaylistInfo, getVideoInfo } from './utils/innertube.util';
 
+import type { AudioPlayerState } from '@discordjs/voice';
 import type { MusicDetails } from './types/music-details.type';
 import type { BasicInfo } from './types/youtubei.type';
 import type { Thumbnails, VideoDetails } from './types/video-details.type';
-import { getPlaylistInfo, getVideoInfo } from './utils/innertube.util';
 
 const YTDlpWrapper = require('yt-dlp-wrap-plus').default;
 
