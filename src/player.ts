@@ -99,7 +99,7 @@ class Player {
     /* Command-based functions */
     async add(int: ChatInputCommandInteraction<CacheType>, text: string): Promise<void> {
       if (YOUTUBE_PLAYLIST_REGEX.test(text)) {
-        const result = tryCatchSync(this.processPlaylist(int, text))
+        const result = await tryCatch(this.processPlaylist(int, text))
 
         if (result.error) {
           text = cleanUrl(text)
