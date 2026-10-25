@@ -669,7 +669,7 @@ class Player {
         }
       }
 
-      const options = buildYtdlpOptions(OptionType.DETAILS)
+      const options = buildYtdlpOptions(OptionType.DETAILS, { url })
       const ytdlpInfo = await ytDlpWrap.execPromise(options)
       const info = JSON.parse(ytdlpInfo)
 
