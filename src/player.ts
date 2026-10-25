@@ -313,9 +313,7 @@ class Player {
 
       this.allSongList.splice(allToPosition, 0, itemRemovedFromAll)
 
-      const songDetails = this.songList[fromPosition]
-
-      int.reply(`Moved ${songDetails?.details?.title ?? "Unknown Title"} to position ${toPosition}`)
+      int.reply(`Moved ${itemRemoved?.details?.title ?? "Unknown Title"} to position ${toPosition}`)
     }
 
     remove(int: ChatInputCommandInteraction<CacheType>, text: string): void {
