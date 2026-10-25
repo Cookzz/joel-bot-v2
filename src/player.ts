@@ -582,6 +582,10 @@ class Player {
 
         return []
       }
+      if (music.status === 'rejected') {
+        // in case the music is not properly downloaded (when its queued for download), we will set it to false first
+        hasDownloaded = false
+      }
 
       const info: VideoDetails | null = musicInfo?.value;
       if (!info){
