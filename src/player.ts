@@ -279,6 +279,12 @@ class Player {
       const fromPosition: number = parseInt(fromToList[0])
       const toPosition: number = parseInt(fromToList[1])
 
+      // in case string somehow passes through when parsing int
+      if (Number.isNaN(fromPosition) || Number.isNaN(toPosition)) {
+        int.reply("Invalid input")
+        return
+      }
+
       //position 0 is the currently playing song, we dont allow it to get replaced
       if (
         (fromPosition < 1 || fromPosition > this.songList.length) ||
