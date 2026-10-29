@@ -4,15 +4,32 @@ export enum OptionType {
     DETAILS = "DETAILS"
 }
 
-export const buildYtdlpOptions = (options: OptionType, params?: any): string[] => {
-    const { url, path, query } = params
+interface YtdlpParams {
+  url?: string,
+  path?: string,
+  query?: string
+}
+
+export const buildYtdlpOptions = (options: OptionType, params: YtdlpParams): string[] => {
+    let { url, path, query } = params
+
+    // I will just assign default values internally if they dont exist, otherwise i will keep getting type errors
+    if (!url) {
+      url = ""
+    }
+    if (!path) {
+     path = ""
+    }
+    if (!query) {
+      query = ""
+    }
 
     switch (options) {
         case OptionType.DOWNLOAD:
             return [
                 url,
                 '-f',
-                'ba',
+                'ba[acodec=opus]/ba',
                 '-N',
                 '8',
                 '-o',
