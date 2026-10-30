@@ -552,10 +552,9 @@ class Player {
       if (this.songList[9] && !this.songList[9].hasDownloaded){
         const options = buildYtdlpOptions(OptionType.DOWNLOAD, { url: this.songList[9].url, path: this.songList[9].path });
 
+        const song = this.songList[9]
         ytDlpWrap.exec(options).once('close', () => {
-          if (this.songList[9]){
-            this.songList[9].hasDownloaded = true;
-          }
+          song.hasDownloaded = true;
         });
       }
     }
@@ -585,10 +584,6 @@ class Player {
         int.channel.send("Unable to fetch details for the music. Skipping the song.")
 
         return []
-      }
-      if (music.status === 'rejected') {
-        // in case the music is not properly downloaded (when its queued for download), we will set it to false first
-        hasDownloaded = false
       }
 
       const info: VideoDetails | null = musicInfo?.value;
