@@ -15,10 +15,10 @@ import { existsSync, rmSync } from 'node:fs'
 import { NUMBER_ONLY_REGEX, YOUTUBE_PLAYLIST_REGEX, YOUTUBE_REGEX } from './constant';
 import Message from './message'
 
-import { cleanUrl, getUUID, getYouTubeId, getYoutubePlaylistId, randomId, tryCatch, tryCatchSync } from './utils/common.util';
+import { cleanUrl, getUUID, getYouTubeId, getYoutubePlaylistId, randomId, tryCatch } from './utils/common.util';
 import { getYtdlpExecutableName } from './utils/config.util';
 import { buildYtdlpOptions, OptionType } from './utils/ytdlp.util';
-import { getPlaylistInfo, getVideoInfo } from './utils/innertube.util';
+import { getPlaylistInfo, getVideoInfo, searchVideo } from './utils/innertube.util';
 
 import type { AudioPlayerState } from '@discordjs/voice';
 import type { MusicDetails } from './types/music-details.type';
@@ -633,9 +633,15 @@ class Player {
     async fromSearch(int: any, text: string): Promise<MusicDetails[]> {
       // assuming that user wants to search if no youtube url exists
       const query = text.trim()
-      const options = buildYtdlpOptions(OptionType.SEARCH, { query })
-
       const msg = await int.channel.send("Searching for the video...")
+
+      // we will use youtubei.js first, yt-dlp as fallback if it cant get anything
+      const videoDetail = await searchVideo(query)
+      if (videoDetail) {
+        return videoDetail.id
+      }
+
+      const options = buildYtdlpOptions(OptionType.SEARCH, { query })
 
       let searchId = await ytDlpWrap.execPromise(options)
 

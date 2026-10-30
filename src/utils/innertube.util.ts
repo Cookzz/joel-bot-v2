@@ -30,3 +30,15 @@ export const getPlaylistInfo = async(playlistId: string): Promise<PlaylistInfo |
 
   return data.info ?? null
 }
+
+export const searchVideo = async (name: string): Promise<any> => {
+  const innerTubeRes = await tryCatch(innertube.search(name, { type: "video" }))
+
+  const { data, error } = innerTubeRes
+
+  if (error || !data?.videos?.length){
+    return null
+  }
+
+  return data.videos[0]
+}
