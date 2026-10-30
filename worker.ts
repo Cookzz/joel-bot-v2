@@ -176,14 +176,14 @@ const processMusic = async(item: any) => {
   const options: string[] = buildYtdlpOptions(OptionType.DOWNLOAD, { url, path });
 
   let downloadPromise: any = Promise.resolve()
-  let hasDownloaded: boolean = true
+  let hasDownloaded: boolean = false
 
   const folderExist = existsSync('./tmp')
   if (folderExist) {
     const files = readdirSync('./tmp')
     if (files.length < 10) {
       downloadPromise = ytDlpWrap.execPromise(options)
-      hasDownloaded = false
+      hasDownloaded = true
     }
   }
 
