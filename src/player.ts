@@ -59,7 +59,7 @@ class Player {
 
       this.audioPlayer.on('error', (error: AudioPlayerError) => {
         console.log(error)
-        this.playYoutube()
+        this.songEnd()
       })
     }
 
