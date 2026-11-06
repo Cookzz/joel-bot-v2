@@ -633,7 +633,8 @@ class Player {
       // we will use youtubei.js first, yt-dlp as fallback if it cant get anything
       const videoDetail = await searchVideo(query)
       if (videoDetail) {
-        return videoDetail.id
+        const videoUrl = `https://www.youtube.com/watch?v=${videoDetail.id}`
+        return await this.fromLink(int, videoUrl)
       }
 
       const options = buildYtdlpOptions(OptionType.SEARCH, { query })
@@ -648,7 +649,7 @@ class Player {
         return []
       }
 
-      let videoUrl = `https://www.youtube.com/watch?v=${searchId}`
+      const videoUrl = `https://www.youtube.com/watch?v=${searchId}`
 
       return await this.fromLink(int, videoUrl)
     }
