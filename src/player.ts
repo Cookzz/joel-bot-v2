@@ -260,6 +260,7 @@ class Player {
         }
         if (this.subscription) {
           this.subscription.unsubscribe()
+          this.subscription = undefined
         }
         this.songList = [];
         this.allSongList = [];
@@ -323,7 +324,7 @@ class Player {
       // since moving songs in current song might affect the list we are keeping for loops, we check if the removed item exist
       const allSongIndex = this.allSongList.findIndex(allSong => allSong.id === itemRemoved.id)
 
-      if (allSongIndex) {
+      if (allSongIndex > 0) {
         // keeping this but a reminder that manual calculation of its position is now no longer necessary
         // const allFromPosition: number = fromPosition + (this.allSongList.length - this.songList.length)
         const allFromPosition = allSongIndex; //this should be fine whether loop is enabled or disabled
