@@ -1,4 +1,4 @@
-export const YOUTUBE_REGEX: RegExp = /^(?!.*[?&]list=)(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?(?:.*&)?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/i;;
+export const YOUTUBE_REGEX: RegExp = /^(?!.*[?&]list=)(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?(?:.*&)?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/i;
 export const YOUTUBE_PLAYLIST_REGEX: RegExp = /^(?:https?:\/\/)?(?:www\.)?youtube\.com\/(?:playlist|watch)\?(?:.*&)?list=([a-zA-Z0-9_-]+)/i;
 export const YOUTUBE_ID_REGEX: RegExp = /(vi\/|v%3D|v=|\/v\/|youtu\.be\/|\/embed\/)/
 export const NUMBER_ONLY_REGEX: RegExp = /^[0-9]*$/

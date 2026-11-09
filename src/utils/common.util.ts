@@ -1,7 +1,7 @@
 import { YOUTUBE_ID_REGEX } from "../constant";
 
 export const pad = (number: number): string => {
-    return `${number}`.slice(-2);
+    return `${number}`.padStart(2, '0');
 }
 
 //generate random alphanumeric id, used only up to 10 items so ID collision is minimal
