@@ -138,12 +138,15 @@ class Player {
           processedNo++
         }
 
-        if (!event.data?.processing) {
+        if (event.data === FAILED_PLAYLIST) {
+          msg.delete()
+          int.channel.send("Failed to process playlist, please try again later.")
+        } else if (event.data !== FAILED_PLAYLIST && !event.data?.processing) {
           msg.delete()
           int.channel.send(`**Added** playlist: ${playlistTitle} to queue, ${processedNo} music added.`)
         }
 
-        if (this.songList.length == 1) {
+        if (this.songList.length === 1) {
           this.play()
         }
       };

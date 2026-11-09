@@ -10,3 +10,4 @@ export const QUOTE_LIST: string[] = [
   "Hi. I am Joel.",
   "Invaded by ERDark spirit Joel Mathew"
 ] as const;
+export const FAILED_PLAYLIST: string = "Playlist error" as const
