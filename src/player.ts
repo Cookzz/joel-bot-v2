@@ -16,7 +16,7 @@ import { existsSync, rmSync } from 'node:fs'
 import { FAILED_PLAYLIST, NUMBER_ONLY_REGEX, YOUTUBE_PLAYLIST_REGEX, YOUTUBE_REGEX } from './constant';
 import Message from './message'
 
-import { cleanUrl, getUUID, getYouTubeId, getYoutubePlaylistId, randomId, tryCatch } from './utils/common.util';
+import { cleanUrl, formatDuration, getUUID, getYouTubeId, getYoutubePlaylistId, randomId, tryCatch } from './utils/common.util';
 import { getYtdlpExecutableName } from './utils/config.util';
 import { buildYtdlpOptions, OptionType } from './utils/ytdlp.util';
 import { getPlaylistInfo, getVideoInfo, searchVideo } from './utils/innertube.util';
@@ -633,8 +633,6 @@ class Player {
       const thumbnails: Thumbnails[] = info.videoDetails.thumbnail.thumbnails ?? []
       const no: number = (thumbnails.length - 1)
       const sec: number = Number(info.videoDetails.lengthSeconds)
-      const minutes: string = String(Math.floor((sec/ 60)))
-      const seconds: string = String(Math.floor((sec % 60)))
 
       int.channel.send(`**Added:** ${info.videoDetails.title}` +
       (
@@ -653,7 +651,7 @@ class Player {
           title: info.videoDetails.title ?? "Unknown Title",
           author: info.videoDetails.author,
           thumbnail_url: thumbnails[no]?.url ?? "",
-          duration: minutes + ":" + seconds
+          duration: formatDuration(sec)
         },
         member: int.member.displayName,
         channel: int.channel,
