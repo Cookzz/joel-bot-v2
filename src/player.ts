@@ -451,7 +451,7 @@ class Player {
           adapterCreator: currentChannel.guild.voiceAdapterCreator
         })
 
-        const disconnectedState = voiceChannel.on(VoiceConnectionStatus.Disconnected, async (oldState, newState) => {
+        voiceChannel.on(VoiceConnectionStatus.Disconnected, async () => {
         	try {
         		await Promise.race([
         			entersState(voiceChannel, VoiceConnectionStatus.Signalling, 5_000),
@@ -460,7 +460,6 @@ class Player {
         		// Seems to be reconnecting to a new channel - ignore disconnect
         	} catch {
         		// Seems to be a real disconnect which SHOULDN'T be recovered from
-            disconnectedState.destroy()
         		this.leave()
         	}
         });
