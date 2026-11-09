@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, Client, type CacheType } from 'discord.js';
+import { ChatInputCommandInteraction, Client, MessageFlags, type CacheType } from 'discord.js';
 import Player from './player';
 import { getVoiceChannel, validateInput } from './utils/host.util';
 import type { Commands } from './types/command.type';
@@ -48,8 +48,7 @@ class Host {
         const currentVoiceId = this.player.getVoiceId()
         if (currentVoiceId){
             if (currentVoiceId !== voice){
-                int.ephemeral = true
-                int.reply("Not in the same voice channel as the bot")
+                int.reply({content: "Not in the same voice channel as the bot", flags: MessageFlags.Ephemeral})
                 return
             }
         }
