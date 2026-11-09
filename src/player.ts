@@ -307,16 +307,23 @@ class Player {
 
       this.songList.splice(toPosition, 0, itemRemoved) // insert itemRemoved into the target index
 
-      const allFromPosition: number = fromPosition + (this.allSongList.length - this.songList.length)
-      const allToPosition: number = toPosition + (this.allSongList.length - this.songList.length)
+      // since moving songs in current song might affect the list we are keeping for loops, we check if the removed item exist
+      const allSongIndex = this.allSongList.findIndex(allSong => allSong.id === itemRemoved.id)
 
-      const itemRemovedFromAll: MusicDetails | null = this.allSongList.splice(allFromPosition, 1)[0] ?? null
-      if (!itemRemovedFromAll){
-        int.reply(`Nothing was removed.`)
-        return
+      if (allSongIndex) {
+        // keeping this but a reminder that manual calculation of its position is now no longer necessary
+        // const allFromPosition: number = fromPosition + (this.allSongList.length - this.songList.length)
+        const allFromPosition = allSongIndex; //this should be fine whether loop is enabled or disabled
+        const allToPosition: number = toPosition + (this.allSongList.length - this.songList.length) //since the song exist, we need to know where to "move" the song
+
+        const itemRemovedFromAll: MusicDetails | null = this.allSongList.splice(allFromPosition, 1)[0] ?? null
+        if (!itemRemovedFromAll){
+          int.reply(`Nothing was removed.`)
+          return
+        }
+
+        this.allSongList.splice(allToPosition, 0, itemRemovedFromAll)
       }
-
-      this.allSongList.splice(allToPosition, 0, itemRemovedFromAll)
 
       int.reply(`Moved ${itemRemoved?.details?.title ?? "Unknown Title"} to position ${toPosition}`)
     }
