@@ -227,7 +227,9 @@ class Player {
       //note: if loop is on, we don't really care and just append whatever was previously queued in, so we dont clear it
       const clearedSongs = this.songList.splice(1, (songListLength-1))
 
-      if (!this.willLoop){
+      if (!this.willLoop) {
+        this.allSongList.splice(1, (songListLength-1)) //if loop is not enabled, we do the same clearing for all songs
+
         const downloadedSongs = clearedSongs.filter(s => s.hasDownloaded === true)
         downloadedSongs.forEach((song) => {
           const fileExists = existsSync(song.path)
