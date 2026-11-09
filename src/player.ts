@@ -21,7 +21,7 @@ import { getYtdlpExecutableName } from './utils/config.util';
 import { buildYtdlpOptions, OptionType } from './utils/ytdlp.util';
 import { getPlaylistInfo, getVideoInfo, searchVideo } from './utils/innertube.util';
 
-import type { AudioPlayerState } from '@discordjs/voice';
+import type { AudioPlayerState, PlayerSubscription } from '@discordjs/voice';
 import type { MusicDetails } from './types/music-details.type';
 import type { BasicInfo } from './types/youtubei.type';
 import type { Thumbnails, VideoDetails } from './types/video-details.type';
@@ -39,6 +39,7 @@ class Player {
     private allSongList: MusicDetails[] = []; //we store it separately in case the user wants to loop the whole list again
     private willLoop: boolean = false;
     private audioPlayer: AudioPlayer = createAudioPlayer();
+    private subscription: PlayerSubscription | undefined = undefined;
     private currentConnection: VoiceConnection | null = null;
     private currentVoiceID: string | null = null;
     private currentBotState: string = "idle"; //we assume its currently idle
@@ -70,6 +71,14 @@ class Player {
 
     public getVoiceId(): string | null {
       return this.currentVoiceID
+    }
+
+    private setSubscription(sub: PlayerSubscription) {
+      this.subscription = sub
+    }
+
+    private getSubscription() {
+      return this.subscription
     }
 
     public async checkConnection() {
@@ -248,6 +257,9 @@ class Player {
         if (this.currentConnection){
           this.currentConnection?.disconnect()
           this.currentConnection?.destroy()
+        }
+        if (this.subscription) {
+          this.subscription.unsubscribe()
         }
         this.songList = [];
         this.allSongList = [];
@@ -479,7 +491,11 @@ class Player {
 
       if (connection && this.songList[0]) {
         //subscribe to "audio player events"
-        connection.subscribe(this.audioPlayer)
+        const sub = this.getSubscription()
+        if (!sub) {
+          const subscription = connection.subscribe(this.audioPlayer)
+          this.setSubscription(subscription)
+        }
 
         //play from the downloaded path
         const resource = createAudioResource(this.songList[0].path, { inputType: StreamType.OggOpus })
