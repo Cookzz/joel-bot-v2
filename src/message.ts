@@ -30,7 +30,7 @@ class Message {
         // calculate total items we need to "see" within a page -> calculate numbering each item per page -> map accordingly
         // if page 1, then get from song item 1 to 10, page 2 will be 11 to 20, page 3 will be 21 to 30
         const pageStartItem = (pageNo > 1) ? (pageNo-1) * pageSize : pageNo
-        const pageEndItem = (pageNo > 1) ? (pageNo-1) * pageSize : pageNo * pageSize
+        const pageEndItem = (pageNo > 1) ? (pageNo) * pageSize : pageNo * pageSize
         const pageItem = (pageNo > 1) ? (pageNo-1) * pageSize : pageNo
         
         const songList = list.slice(pageStartItem, pageEndItem)
