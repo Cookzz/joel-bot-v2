@@ -9,9 +9,10 @@ import {
   StreamType,
   VoiceConnectionStatus,
   AudioPlayerError,
-  entersState
+  entersState,
+  demuxProbe
 } from '@discordjs/voice';
-import { existsSync, rmSync } from 'node:fs'
+import { existsSync, rmSync, createReadStream } from 'node:fs'
 
 import { FAILED_PLAYLIST, NUMBER_ONLY_REGEX, YOUTUBE_PLAYLIST_REGEX, YOUTUBE_REGEX } from './constant';
 import Message from './message'
@@ -502,8 +503,12 @@ class Player {
           this.setSubscription(subscription)
         }
 
+        // create a small buffer so the music doesn't lag when playing back through the bot
+        const fileStream = createReadStream(this.songList[0].path, { highWaterMark: 512 * 1024 }); // ~512 KiB
+        const { type } = await demuxProbe(fileStream)
+
         //play from the downloaded path
-        const resource = createAudioResource(this.songList[0].path, { inputType: StreamType.OggOpus })
+        const resource = createAudioResource(fileStream, { inputType: type })
 
         //play that resource
         this.audioPlayer.play(resource)
