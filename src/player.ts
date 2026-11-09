@@ -8,7 +8,8 @@ import {
   AudioPlayerStatus,
   StreamType,
   VoiceConnectionStatus,
-  AudioPlayerError
+  AudioPlayerError,
+  entersState
 } from '@discordjs/voice';
 import { existsSync, rmSync } from 'node:fs'
 
@@ -450,9 +451,19 @@ class Player {
           adapterCreator: currentChannel.guild.voiceAdapterCreator
         })
 
-        voiceChannel.once(VoiceConnectionStatus.Disconnected, () => {
-          this.leave()
-        })
+        const disconnectedState = voiceChannel.on(VoiceConnectionStatus.Disconnected, async (oldState, newState) => {
+        	try {
+        		await Promise.race([
+        			entersState(voiceChannel, VoiceConnectionStatus.Signalling, 5_000),
+        			entersState(voiceChannel, VoiceConnectionStatus.Connecting, 5_000),
+        		]);
+        		// Seems to be reconnecting to a new channel - ignore disconnect
+        	} catch {
+        		// Seems to be a real disconnect which SHOULDN'T be recovered from
+            disconnectedState.destroy()
+        		this.leave()
+        	}
+        });
 
         this.currentConnection = voiceChannel
 
