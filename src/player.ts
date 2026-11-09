@@ -365,9 +365,13 @@ class Player {
       }
 
       const removedSong = this.songList[songNo]
-      this.removeDownload(songNo)
-
       this.songList.splice(songNo, 1)
+
+      //we will remove the song from download if loop is not enabled
+      if (!this.willLoop) {
+        this.removeDownload(songNo)
+        this.allSongList.splice(songNo, 1)
+      }
 
       int.reply(`Removed: ${removedSong?.details.title ?? "Unknown Song"}`)
     }
