@@ -29,13 +29,17 @@ export const sumDurations = (durations: string[]): number => {
     }, 0);
 }
 
-export const formatDuration = (duration: number): string => {
+export const formatDuration = (duration: number, showHours: boolean = true): string => {
     const hours = duration / 3600 | 0;
     const minutes = duration % 3600 / 60 | 0;
     const seconds = duration % 60;
     const minsSecs = `${pad(minutes)}:${pad(seconds)}`;
 
-    return hours > 0 ? `${hours}:${minsSecs}` : `00:${minsSecs}`;
+    if (showHours) {
+      return hours > 0 ? `${hours}:${minsSecs}` : `00:${minsSecs}`;
+    }
+
+    return `${minsSecs}`
 }
 
 export const cleanUrl = (text: string): string => {

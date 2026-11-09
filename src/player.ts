@@ -651,7 +651,7 @@ class Player {
           title: info.videoDetails.title ?? "Unknown Title",
           author: info.videoDetails.author,
           thumbnail_url: thumbnails[no]?.url ?? "",
-          duration: formatDuration(sec)
+          duration: formatDuration(sec, false)
         },
         member: int.member.displayName,
         channel: int.channel,
