@@ -1,4 +1,5 @@
 import { YOUTUBE_ID_REGEX } from "../constant";
+import { randomUUID } from 'node:crypto'
 
 export const pad = (number: number): string => {
     return `${number}`.padStart(2, '0');
@@ -6,19 +7,12 @@ export const pad = (number: number): string => {
 
 //generate random alphanumeric id, used only up to 10 items so ID collision is minimal
 export const randomId = (): string => {
-    const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&';
-    let id = '';
-
-    for (let i = 0; i < 16; i++) {
-        id += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-
-    return id;
+    return randomUUID();
 }
 
 //generate more unique id for music queue and loop tracking
-export const getUUID = (length: number = 16): number => {
-    return parseInt(Math.ceil(Math.random() * Date.now()).toPrecision(length).toString().replace(".", ""))
+export const getUUID = (): string => {
+    return randomUUID()
 }
 
 export const getDuration = (durations: string[]): string => {
