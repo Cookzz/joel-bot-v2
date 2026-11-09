@@ -12,7 +12,7 @@ import {
 } from '@discordjs/voice';
 import { existsSync, rmSync } from 'node:fs'
 
-import { NUMBER_ONLY_REGEX, YOUTUBE_PLAYLIST_REGEX, YOUTUBE_REGEX } from './constant';
+import { FAILED_PLAYLIST, NUMBER_ONLY_REGEX, YOUTUBE_PLAYLIST_REGEX, YOUTUBE_REGEX } from './constant';
 import Message from './message'
 
 import { cleanUrl, getUUID, getYouTubeId, getYoutubePlaylistId, randomId, tryCatch } from './utils/common.util';
