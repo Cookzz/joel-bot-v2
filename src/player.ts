@@ -73,7 +73,7 @@ class Player {
       return this.currentVoiceID
     }
 
-    private setSubscription(sub: PlayerSubscription) {
+    private setSubscription(sub: PlayerSubscription | undefined) {
       this.subscription = sub
     }
 
