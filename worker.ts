@@ -87,7 +87,7 @@ const buildYtdlpOptions = (options: OptionType, params?: any): string[] => {
             return [
                 url,
                 '-f',
-                'ba',
+                'ba[acodec=opus]/ba',
                 '-N',
                 '8',
                 '-o',
