@@ -5,8 +5,9 @@ import { Innertube, UniversalCache } from 'youtubei.js'
 import { platform, arch } from 'node:os';
 import { existsSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
+import { randomUUID } from 'node:crypto'
 
-const innertube = await Innertube.create({ cache: new UniversalCache(true, join(process.cwd(), ".youtube_cache")) });
+const innertube = await Innertube.create({ cache: new UniversalCache(true, join(process.cwd(), ".worker_youtube_cache")) });
 
 const YTDlpWrapper = require('yt-dlp-wrap-plus').default;
 
@@ -71,18 +72,11 @@ export const tryCatch = async<T, E = Error>(promise: Promise<T>): Promise<Result
 
 /* Functions */
 const randomId = (): string => {
-    const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&';
-    let id = '';
-
-    for (let i = 0; i < 16; i++) {
-        id += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-
-    return id;
+    return randomUUID()
 }
 
-export const getUUID = (length: number = 16): number => {
-    return parseInt(Math.ceil(Math.random() * Date.now()).toPrecision(length).toString().replace(".", ""))
+export const getUUID = (): string => {
+    return randomUUID()
 }
 
 const buildYtdlpOptions = (options: OptionType, params?: any): string[] => {
