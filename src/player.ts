@@ -632,6 +632,11 @@ class Player {
 
         return []
       }
+      if (music.status === 'rejected'){
+        int.channel.send("Failed to add song. Please try again later.")
+
+        return []
+      }
 
       const info: VideoDetails | null = musicInfo?.value;
       if (!info){
