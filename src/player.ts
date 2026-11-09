@@ -6,7 +6,6 @@ import {
   AudioPlayer,
   createAudioResource,
   AudioPlayerStatus,
-  StreamType,
   VoiceConnectionStatus,
   AudioPlayerError,
   entersState,
