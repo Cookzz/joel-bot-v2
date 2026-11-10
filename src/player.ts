@@ -627,12 +627,7 @@ class Player {
       const [musicInfo, music] = await Promise.allSettled([this.fetchSongInfo(url), downloadPromise])
 
       //todo: add a fallback here if possible if music info failed to fetch, otherwise it will crash by default
-      if (musicInfo.status === 'rejected'){
-        int.channel.send("Unable to fetch details for the music. Skipping the song.")
-
-        return []
-      }
-      if (music.status === 'rejected'){
+      if (musicInfo.status === 'rejected' || music.status === 'rejected'){
         int.channel.send("Failed to add song. Please try again later.")
 
         return []
